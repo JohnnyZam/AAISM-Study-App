@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AAISM Prep">
+<title>AAISM Study App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0B1628;
+  --navy2: #132038;
+  --navy3: #1C2E4A;
+  --navy4: #243858;
+  --blue: #2563EB;
+  --blue-light: #3B82F6;
+  --blue-dim: rgba(37,99,235,0.15);
+  --teal: #0D9488;
+  --teal-dim: rgba(13,148,136,0.15);
+  --amber: #D97706;
+  --amber-dim: rgba(217,119,6,0.12);
+  --red: #DC2626;
+  --red-dim: rgba(220,38,38,0.12);
+  --green: #16A34A;
+  --green-dim: rgba(22,163,74,0.12);
+  --text: #F1F5F9;
+  --text2: #94A3B8;
+  --text3: #64748B;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--navy); overscroll-behavior: none; }
+body { font-family: 'DM Sans', sans-serif; color: var(--text); min-height: 100vh; }
+
+/* ── Layout ── */
+#app { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; }
+.screen { display: none; flex-direction: column; min-height: 100vh; padding-bottom: calc(20px + var(--safe-bottom)); }
+.screen.active { display: flex; }
+
+/* ── Topbar ── */
+.topbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: calc(14px + var(--safe-top)) 16px 14px;
+  background: var(--navy); position: sticky; top: 0; z-index: 20;
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+}
+.topbar-title { font-size: 16px; font-weight: 600; color: var(--text); flex: 1; }
+.back-btn {
+  width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border2);
+  background: var(--navy2); display: flex; align-items: center; justify-content: center;
+  color: var(--text2); cursor: pointer; flex-shrink: 0; transition: all .15s;
+}
+.back-btn:active { background: var(--navy3); transform: scale(.95); }
+
+/* ── Cards ── */
+.card {
+  background: var(--navy2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 18px;
+  margin: 0 16px;
+}
+.card + .card { margin-top: 10px; }
+
+/* ── Buttons ── */
+.btn {
+  width: 100%; padding: 14px 20px;
+  border-radius: var(--radius); font-family: 'DM Sans', sans-serif;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  border: none; transition: all .15s; letter-spacing: .01em;
+}
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { background: var(--blue-light); }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+.btn-outline {
+  background: transparent; color: var(--text2);
+  border: 1px solid var(--border2);
+}
+.btn-outline:hover { background: var(--navy3); color: var(--text); }
+.btn-danger-outline { background: transparent; color: #F87171; border: 1px solid rgba(220,38,38,0.3); }
+
+/* ── Badge ── */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; letter-spacing: .03em;
+}
+.badge-blue { background: var(--blue-dim); color: #60A5FA; border: 1px solid rgba(37,99,235,.25); }
+.badge-teal { background: var(--teal-dim); color: #2DD4BF; border: 1px solid rgba(13,148,136,.25); }
+.badge-amber { background: var(--amber-dim); color: #FCD34D; border: 1px solid rgba(217,119,6,.25); }
+.badge-green { background: var(--green-dim); color: #4ADE80; border: 1px solid rgba(22,163,74,.3); }
+.badge-red { background: var(--red-dim); color: #F87171; border: 1px solid rgba(220,38,38,.3); }
+
+/* ── Segment control ── */
+.seg { display: flex; background: var(--navy3); border-radius: 10px; padding: 3px; gap: 3px; }
+.seg-btn {
+  flex: 1; padding: 8px 6px; border-radius: 8px;
+  font-size: 13px; font-weight: 500; color: var(--text3);
+  cursor: pointer; border: none; background: transparent;
+  font-family: 'DM Sans', sans-serif; transition: all .15s; text-align: center;
+}
+.seg-btn.active { background: var(--navy2); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+
+/* ── Quiz option buttons ── */
+.opt {
+  width: 100%; text-align: left; padding: 14px 16px;
+  background: var(--navy2); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); cursor: pointer;
+  display: flex; align-items: flex-start; gap: 12px;
+  margin-bottom: 9px; transition: all .15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.opt:hover:not(:disabled) { border-color: var(--blue); background: var(--navy3); }
+.opt:active:not(:disabled) { transform: scale(.99); }
+.opt.correct { background: var(--green-dim); border-color: rgba(22,163,74,.5); }
+.opt.wrong   { background: var(--red-dim);   border-color: rgba(220,38,38,.5);  }
+.opt.show-correct { background: var(--green-dim); border-color: rgba(22,163,74,.5); }
+.opt-key {
+  width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0;
+  background: var(--navy3); border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; color: var(--text2);
+  font-family: 'DM Mono', monospace;
+}
+.opt.correct .opt-key  { background: var(--green); border-color: var(--green); color: #fff; }
+.opt.wrong .opt-key    { background: var(--red);   border-color: var(--red);   color: #fff; }
+.opt.show-correct .opt-key { background: var(--green); border-color: var(--green); color: #fff; }
+.opt-text { font-size: 14px; color: var(--text); line-height: 1.55; padding-top: 2px; flex: 1; }
+
+/* ── Explain box ── */
+.explain {
+  background: rgba(37,99,235,.1); border: 1px solid rgba(37,99,235,.25);
+  border-radius: var(--radius-sm); padding: 14px 16px; margin-top: 4px;
+}
+.explain-label { font-size: 11px; font-weight: 600; color: #60A5FA; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 6px; }
+.explain-text { font-size: 13px; color: #93C5FD; line-height: 1.65; }
+.explain.correct-box { background: var(--green-dim); border-color: rgba(22,163,74,.3); }
+.explain.correct-box .explain-label { color: #4ADE80; }
+.explain.correct-box .explain-text { color: #86EFAC; }
+.explain.wrong-box { background: var(--red-dim); border-color: rgba(220,38,38,.3); }
+.explain.wrong-box .explain-label { color: #F87171; }
+.explain.wrong-box .explain-text { color: #FCA5A5; }
+
+/* ── Progress bar ── */
+.prog-bg { height: 3px; background: var(--navy3); border-radius: 2px; overflow: hidden; }
+.prog-fill { height: 3px; background: var(--blue); border-radius: 2px; transition: width .3s ease; }
+
+/* ── Search ── */
+.search-wrap { position: relative; margin: 10px 16px; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
+.search-input {
+  width: 100%; padding: 11px 12px 11px 38px;
+  background: var(--navy2); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); font-size: 14px; color: var(--text);
+  font-family: 'DM Sans', sans-serif; outline: none;
+}
+.search-input::placeholder { color: var(--text3); }
+.search-input:focus { border-color: var(--blue); }
+
+/* ── Glossary list ── */
+.gloss-list { margin: 0 16px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+.gloss-item { padding: 14px 16px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background .15s; }
+.gloss-item:last-child { border-bottom: none; }
+.gloss-item:hover { background: var(--navy2); }
+.gloss-item:active { background: var(--navy3); }
+.gloss-term { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.gloss-preview { font-size: 12px; color: var(--text3); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ── Score circle ── */
+.score-ring { width: 110px; height: 110px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid; margin: 0 auto 16px; }
+.score-pct { font-size: 28px; font-weight: 600; font-family: 'DM Mono', monospace; }
+.score-sub { font-size: 12px; font-weight: 500; margin-top: 2px; }
+
+/* ── Domain chips ── */
+.chip-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 4px 16px; scrollbar-width: none; }
+.chip-scroll::-webkit-scrollbar { display: none; }
+.chip {
+  padding: 7px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;
+  border: 1px solid var(--border2); background: var(--navy2); color: var(--text2);
+  cursor: pointer; white-space: nowrap; transition: all .15s; flex-shrink: 0;
+}
+.chip.active { background: var(--blue-dim); border-color: rgba(37,99,235,.5); color: #60A5FA; }
+
+/* ── Home hero ── */
+.home-hero { padding: calc(var(--safe-top) + 32px) 20px 24px; text-align: center; }
+.hero-logo { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; color: var(--blue-light); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 12px; }
+.hero-title { font-size: 30px; font-weight: 600; color: var(--text); line-height: 1.2; margin-bottom: 8px; }
+.hero-sub { font-size: 14px; color: var(--text3); margin-bottom: 28px; }
+
+/* ── Stat grid ── */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 0 16px 24px; }
+.stat-box { background: var(--navy2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 8px; text-align: center; }
+.stat-val { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; color: var(--text); }
+.stat-lbl { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+/* ── Feature cards ── */
+.feat-card {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--navy2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 18px; margin: 0 16px 10px;
+  cursor: pointer; transition: all .15s;
+}
+.feat-card:hover { border-color: var(--border2); background: var(--navy3); }
+.feat-card:active { transform: scale(.99); }
+.feat-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.feat-info { flex: 1; }
+.feat-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.feat-desc { font-size: 12px; color: var(--text3); line-height: 1.4; }
+.feat-arrow { color: var(--text3); font-size: 18px; }
+
+/* ── Section label ── */
+.section-label { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; padding: 0 16px; margin-bottom: 8px; margin-top: 20px; }
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--border); margin: 12px 16px; }
+
+/* ── Result domain row ── */
+.domain-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.domain-row:last-child { border-bottom: none; }
+
+/* ── Perf bar ── */
+.perf-bar-bg { flex: 1; height: 6px; background: var(--navy3); border-radius: 3px; overflow: hidden; margin: 0 12px; }
+.perf-bar-fill { height: 6px; border-radius: 3px; transition: width .6s ease; }
+
+/* ── Footer note ── */
+.foot-note { font-size: 11px; color: var(--text3); text-align: center; padding: 16px; line-height: 1.5; }
+
+/* ── Transitions ── */
+.fade-in { animation: fadeIn .2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="screen-home" class="screen active"></div>
+  <div id="screen-glossary" class="screen"></div>
+  <div id="screen-gloss-detail" class="screen"></div>
+  <div id="screen-quiz-config" class="screen"></div>
+  <div id="screen-quiz" class="screen"></div>
+  <div id="screen-results" class="screen"></div>
+  <div id="screen-review" class="screen"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+const DOMAIN_COLORS = {
+  1: { badge: 'badge-blue',  label: 'Domain 1 — Governance' },
+  2: { badge: 'badge-teal',  label: 'Domain 2 — Risk Mgmt'  },
+  3: { badge: 'badge-amber', label: 'Domain 3 — Technologies'}
+};
+
+const QUESTIONS = [
+  {id:1,domain:1,q:"What is the PRIMARY purpose of AI governance according to ISACA?",opts:["To maximize AI system performance and speed","To ensure safe and ethical use of AI through senior oversight, processes, standards, and safeguards","To reduce the cost of AI implementation across the enterprise","To automate all business decision-making processes"],correct:1,exp:"AI governance encompasses the senior oversight, processes, standards, and safeguards ensuring safe and ethical use of AI. It addresses inherent flaws from human-created AI — including bias and discrimination that can harm individuals."},
+  {id:2,domain:1,q:"Which of the following CANNOT be delegated by the governing body regarding AI?",opts:["Day-to-day AI operations","Technical AI development and maintenance","Overall responsibility and accountability for all AI activities","Employee AI awareness training"],correct:2,exp:"The governing body is responsible and accountable for ALL activities of an organization, and this responsibility cannot be delegated. They can be held legally accountable for any bad actions executed by an AI solution."},
+  {id:3,domain:1,q:"An AI charter is BEST described as:",opts:["A technical specification for AI model architecture","A formal document defining scope, objectives, stakeholders, governance structure, and success metrics for an AI initiative","A vendor contract outlining AI service delivery terms","A regulatory filing required for AI system deployment"],correct:1,exp:"An AI charter formally defines the scope, objectives, and work of the AI project. It serves as a guiding document to align stakeholders and establish expectations. It includes governance structure, risk management, timeline, and approval signatures."},
+  {id:4,domain:1,q:"Under the EU AI Act, which use case is classified as PROHIBITED (Unacceptable Risk)?",opts:["AI used for customer product recommendations","AI-powered fraud detection in financial transactions","A social credit scoring system used to evaluate citizens","AI used to assess creditworthiness for loan applications"],correct:2,exp:"Social credit scoring systems are explicitly prohibited under the EU AI Act because they cause severe harm through behavioral manipulation and circumvention of free will. Such systems are banned entirely."},
+  {id:5,domain:1,q:"What is the key difference between the NIST AI RMF and the EU AI Act?",opts:["NIST AI RMF is mandatory for US organizations; EU AI Act is voluntary","NIST AI RMF is voluntary and flexible with no fixed thresholds; EU AI Act is mandatory with legally binding risk classifications","NIST AI RMF addresses only technical risk; EU AI Act addresses only ethical risk","NIST AI RMF was created for governments; EU AI Act was created for private enterprises"],correct:1,exp:"NIST AI RMF is a voluntary framework providing best practices without legal enforcement. The EU AI Act establishes legally binding obligations with explicit risk classifications (Prohibited, High, Limited, Minimal) and mandatory compliance requirements."},
+  {id:6,domain:1,q:"When should an AI Acceptable Use Policy (AUP) be reviewed?",opts:["Only when a security incident occurs","At least annually or following any significant change to the enterprise or evolving AI risk","Every three years as part of a major IT audit cycle","Only when new AI regulations are formally published"],correct:1,exp:"AI policy review should occur at least annually or following any significant change to the enterprise. New regulations, emerging risks, and evolving AI capabilities all affect policy currency and may require updates."},
+  {id:7,domain:1,q:"Which data quality dimension ensures AI training data contains all necessary fields fully populated?",opts:["Accuracy","Completeness","Consistency","Validity"],correct:1,exp:"Completeness means data contains all necessary fields and records, with mandatory fields fully populated. This is distinct from accuracy (free from errors), consistency (uniform across datasets), and validity (adheres to business logic)."},
+  {id:8,domain:1,q:"What is the PRIMARY risk of treating AI solutions as 'black boxes'?",opts:["Increased computational costs","Higher risk that untrustworthy outputs lead to unintended consequences, with no way to verify or explain decisions","Difficulty training employees to use AI effectively","Regulatory non-compliance with data residency laws"],correct:1,exp:"If AI solutions are treated as black boxes, untrustworthy AI outputs may lead to unintended consequences. Explainability is essential so users can understand how decisions are made and verify their reliability."},
+  {id:9,domain:1,q:"An AI steering committee chairperson would MOST likely be which role?",opts:["The organization's lead data scientist","Chief Information Officer, Chief Technology Officer, or Chief Data Officer","The external AI vendor's account manager","The organization's legal counsel"],correct:1,exp:"The AI steering committee is chaired by a senior leader such as the CIO, CTO, or CDO. The committee includes domain experts, technical leaders, and compliance/legal advisors to ensure governance across all dimensions."},
+  {id:10,domain:1,q:"What is 'value alignment' in the context of AI development?",opts:["Ensuring financial ROI aligns with business projections","Designing AI systems that behave consistently with human values and ethical principles","Aligning AI vendor pricing with the organization's budget","Ensuring AI performance metrics align with technical benchmarks"],correct:1,exp:"Value alignment refers to designing AI systems that behave consistently with human values and ethical principles. Common elements include ethical foundations, legal compliance, and operational strategies — and it varies by organization and culture."},
+  {id:11,domain:1,q:"What characterizes an AI-enabled computing environment (ACE) vs. a traditional application?",opts:["An ACE is simpler and requires fewer compliance considerations","An ACE may have multiple owners, models, versions, datasets, SDLC considerations, and third-party tools","An ACE only requires a single data source and one algorithm","An ACE has lower regulatory requirements than traditional software"],correct:1,exp:"An ACE is not an application like Microsoft Excel. One ACE may have multiple owners, models, versions, datasets, algorithms, SDLC considerations, third-party tools, and multiple licensures — making it far more complex than traditional software."},
+  {id:12,domain:1,q:"What is the purpose of a model card in AI governance?",opts:["An authentication credential for API access","A billing document tracking API usage","A document providing transparency about model details, intended use, training data, architecture, and performance metrics","A legal agreement specifying service terms between provider and deployer"],correct:2,exp:"Model cards provide transparency and foster trust in AI models. Key elements include model details (name, version, parameters), use case, architecture, training data information, performance metrics, and fairness constraints."},
+  {id:13,domain:1,q:"Which of the following BEST describes 'shadow AI'?",opts:["AI capabilities hidden within commercial software by vendors","An AI model trained on classified government data","The use of unapproved AI applications within an organization without IT oversight","AI systems operating in unauthorized cloud environments"],correct:2,exp:"Shadow AI is the use of unapproved AI applications without organizational oversight. It introduces significant risks including data breaches, compliance violations, and reputational damage. Staff will use AI regardless of policy, incurring associated risk."},
+  {id:14,domain:1,q:"AI projects MOST commonly fail due to which of the following?",opts:["Excessive budget allocation","Misunderstanding the problem, lack of quality data, and inadequate infrastructure","Too many competing vendors","Insufficient computing resources for model training"],correct:1,exp:"Common AI project failure factors: misunderstanding or miscommunicating the problem to be solved, lack of quality data, not solving the actual business problem, inadequate infrastructure, and applying AI to problems too difficult for AI to solve."},
+  {id:15,domain:1,q:"A business case for an AI solution should, at minimum, include:",opts:["Expected ROI and implementation timeline only","The problem AI solves, how it solves it, expected ROI, identified risks, and a detailed implementation plan","Technical specifications for the AI model's architecture","A vendor comparison matrix with pricing from at least three providers"],correct:1,exp:"A business case must outline: the problem, how the AI solution addresses it, ROI expectations based on cost-benefit analysis, identified risks with mitigations, and a detailed implementation plan."},
+  {id:16,domain:1,q:"What are the 'Five Vs' of big data as applicable to AI data management?",opts:["Validity, Verification, Volume, Variety, Velocity","Volume, Velocity, Variety, Veracity, Value","Visibility, Volume, Veracity, Value, Variability","Variety, Velocity, Volume, Validation, Visibility"],correct:1,exp:"The Five Vs — Volume, Velocity, Variety, Veracity, and Value — are critical to AI data management. There is a positive correlation between data size, volume, and variety and accurate AI model performance."},
+  {id:17,domain:1,q:"Source code developed internally for an organization's products should be classified as:",opts:["Public","Internal","Confidential or Restricted — it represents proprietary IP","Open-access"],correct:2,exp:"Source code represents intellectual property (IP). If exposed, it could lead to legal liability and negative business consequences. It is therefore Confidential or Restricted — the highest data classification tier."},
+  {id:18,domain:1,q:"What is a PRIMARY limitation of cloud hosting for AI solutions?",opts:["Greater cost than on-premises solutions","Less control over infrastructure, potential vendor lock-in, and security risk from data leaving the controlled environment","Inability to scale AI workloads","Limited access to pre-trained models"],correct:1,exp:"Cloud AI limitations include: less control over infrastructure, potential vendor lock-in, performance concerns from network latency, and security/privacy risks of data leaving the controlled environment."},
+  {id:19,domain:1,q:"What distinguishes an AI security program from a general cybersecurity program?",opts:["It replaces the existing cybersecurity program","It ensures all AI solutions are protected throughout the AI lifecycle, including model protection and ethical considerations","It focuses exclusively on external threats targeting AI APIs","It monitors employee use of AI to prevent productivity loss"],correct:1,exp:"A robust AI security program ensures ALL AI solutions are protected throughout the enterprise and AI lifecycle. It covers both security for AI (protecting models and data) and AI for security (using AI to enhance security). Ethical considerations set it apart from traditional programs."},
+  {id:20,domain:1,q:"What is the PRIMARY difference between structured and unstructured data in AI?",opts:["Structured data is always more valuable for AI training","Structured data has a predefined format in relational databases; unstructured data has no predefined format (text, audio, images, video)","Unstructured data always requires more governance controls","Structured data cannot be used for deep learning models"],correct:1,exp:"Structured data follows a predefined format and is typically stored in relational databases. Unstructured data has no predefined format and includes text, audio, images, and video. Both are used in AI, but they present different data governance and management challenges."},
+  {id:21,domain:1,q:"When developing an AI policy, what is MOST important for enterprise-wide adoption?",opts:["Making the policy technically detailed enough to cover every AI tool","Ensuring senior management support is visibly reflected in the policy itself","Limiting policy scope to IT and security departments","Delegating policy development entirely to legal and compliance teams"],correct:1,exp:"Senior management support implies organizational leaders are committed to the policy. It increases enterprise-wide adoption, helps employees understand the vision, and guarantees alignment with the overall enterprise strategy."},
+  {id:22,domain:1,q:"What is the key risk of 'anthropomorphizing' AI?",opts:["AI systems become too complex to manage","Human characteristics are incorrectly attributed to AI, creating unrealistic trust — and governing bodies can be held legally accountable for AI's bad actions","AI models begin simulating emotions, producing unpredictable outputs","Employees become over-reliant on AI for tasks requiring human judgment"],correct:1,exp:"Anthropomorphizing AI attributes human characteristics (thinking, judging, moral reasoning) to AI systems. Governing bodies must understand this risk because they can be held legally accountable for any bad actions executed by an AI solution."},
+  {id:23,domain:1,q:"In AI incident response, which phase involves revoking dataset access to contain an ongoing data poisoning attack?",opts:["Prepare","Detect","Respond","Eradicate"],correct:2,exp:"The Respond phase involves containment and initial remediation. For data poisoning, access to datasets for all systems in the pipeline should be revoked. For prompt injection, input/output validation templates should be deployed to screen and sanitize abusive prompts."},
+  {id:24,domain:1,q:"What distinguishes AI-powered incident response from traditional incident response?",opts:["AI-powered IR requires more human analysts","AI-powered IR is faster, highly scalable, and continuously learns; traditional IR relies on manual processing and is limited by human capacity","Traditional IR is more accurate and produces fewer false positives","AI-powered IR is only suitable for large enterprises"],correct:1,exp:"AI-powered incident response uses ML automation to detect, analyze, and respond in real time. Unlike traditional methods, AI systems continuously learn from data to enhance accuracy. Traditional IR involves manual log analysis, predefined rules, and is limited by human capacity."},
+  {id:25,domain:1,q:"Which area is MOST likely MISSED when applying only traditional cybersecurity to AI?",opts:["Data loss prevention strategies","Network perimeter security controls","Legal, regulatory, and ethical considerations unique to AI — including bias, human rights, and responsible AI","Integration with legacy systems"],correct:2,exp:"Evolving AI laws indicate what types of AI are permissible in certain jurisdictions. Ethical and human rights considerations — bias, fairness, transparency — are unique to AI and typically not covered by existing cybersecurity programs."},
+  {id:26,domain:1,q:"What does the OECD AI Principle of 'Transparency and Explainability' primarily require?",opts:["Making AI source code open-source and publicly accessible","Ensuring the workings of AI systems and rationale behind decisions are understandable and accessible to users and stakeholders","Requiring AI companies to publish financial data and training costs","Mandating that AI explain decisions only when errors occur"],correct:1,exp:"Transparency and Explainability (OECD Principle 1.3) ensures the workings of AI and rationale behind decisions are understandable and accessible. This includes clear documentation about the model, training data, bias metrics, and enabling users to verify results."},
+  {id:27,domain:1,q:"An AI model consistently produces different results each time the same query is run. This is MOST associated with:",opts:["Reactive machine AI systems","Generative AI (GenAI) models","Supervised machine learning classifiers","Rule-based decision support systems"],correct:1,exp:"Unlike conventional software where code produces deterministic outputs, GenAI models are non-deterministic — the same input can produce different outputs. This makes explainability harder and requires that GenAI output always undergo human oversight and validation."},
+  {id:28,domain:1,q:"What is the PRIMARY goal of the NIST Cybersecurity Framework (CSF) 2.0 as it applies to AI-enabled systems?",opts:["To provide mandatory compliance rules for AI deployments","To classify AI systems into risk tiers for regulatory purposes","To provide a structured set of functions — Govern, Identify, Protect, Detect, Respond, Recover — for managing cybersecurity risk including AI-related threats","To replace the NIST AI RMF for organizations using AI"],correct:2,exp:"The NIST CSF 2.0 added a new 'Govern' function and now includes six functions: Govern, Identify, Protect, Detect, Respond, and Recover. It applies to AI-enabled systems as part of the broader cybersecurity posture. CSF and AI RMF are complementary, not substitutes."},
+  {id:29,domain:2,q:"What is the FIRST step in AI risk management?",opts:["Implementing security controls for identified AI systems","Accurately inventorying AI use within the organization — including AI embedded in existing tools","Conducting a privacy impact assessment for all data processing activities","Establishing risk tolerance thresholds with the governing body"],correct:1,exp:"The first step in risk management is identification, starting with accurately inventorying AI use within the organization. Employees may not know how AI is embedded in tools they use. This includes mapping objectives, determining what services fulfill them, and identifying vital assets."},
+  {id:30,domain:2,q:"What are the FOUR functions of the NIST AI Risk Management Framework (AI RMF)?",opts:["Identify, Protect, Detect, Respond","Govern, Map, Measure, Manage","Assess, Plan, Implement, Monitor","Classify, Analyze, Mitigate, Transfer"],correct:1,exp:"NIST AI RMF: GOVERN (establishes risk policies and accountability), MAP (identifies AI characteristics and risk areas), MEASURE (analyzes and benchmarks risks), MANAGE (prioritizes, addresses, and responds to identified risks)."},
+  {id:31,domain:2,q:"Which threat modeling framework is PURPOSE-BUILT for AI systems, addressing multi-agent environments and adversarial ML?",opts:["STRIDE","PASTA","OCTAVE","MAESTRO"],correct:3,exp:"MAESTRO (Multi-Agent Environment Security, Threat, Risk & Outcome) is the only threat modeling framework specifically designed for AI. It covers multi-agents, adversarial ML, and AI autonomy risks. STRIDE, PASTA, and OCTAVE all lack AI-specific threat coverage."},
+  {id:32,domain:2,q:"A fraud detection AI has a known 5% false positive rate and reducing it further costs more than the benefit. The MOST appropriate risk response is:",opts:["Avoid — stop using the AI fraud detection system","Transfer — purchase insurance to cover fraudulent transactions","Accept — with ongoing monitoring to ensure the rate doesn't worsen","Mitigate — implement additional controls regardless of cost"],correct:2,exp:"Risk acceptance is chosen when the cost of mitigation outweighs the benefits and risk is within acceptable levels. An AI fraud detection system with a known false positive rate is a classic example. Monitoring must be in place to track trend changes."},
+  {id:33,domain:2,q:"What is 'prompt injection' in the context of LLM security?",opts:["Injecting clean data into an LLM's training pipeline to improve accuracy","An attacker using specific prompts to alter LLM behavior — often overriding system instructions","A technique for improving AI performance by engineering better prompts","A method of compressing inputs before sending them to an AI API"],correct:1,exp:"Prompt injection occurs when an attacker uses specific prompts to alter the behavior of a large language model — overriding or bypassing system instructions, potentially extracting sensitive information or causing the model to take harmful actions."},
+  {id:34,domain:2,q:"Under the EU AI Act, what is the MOST important obligation of an AI deployer using a third-party high-risk AI system?",opts:["The deployer has no obligations since the provider bears all responsibility","The deployer must maintain human oversight, control data inputs, monitor responses, and report serious incidents to the provider","The deployer must independently rebuild the provider's technical documentation","The deployer must perform a separate conformity assessment"],correct:1,exp:"Even with a third-party provider, the AI deployer retains responsibility and liability. Deployers must use AI per provider instructions, assign qualified individuals for oversight, control data provided to AI systems, monitor responses, report issues, and maintain appropriate logs."},
+  {id:35,domain:2,q:"What is 'excessive agency' as an LLM vulnerability?",opts:["When an LLM is given more computational resources than necessary","When an LLM gains the ability to make decisions or perform actions in external systems via extensions — beyond its intended scope","When an AI processes too much input data in a single request","When an organization over-relies on a single AI vendor"],correct:1,exp:"Excessive agency occurs when an LLM, through extensions and plugins, gains the ability to make decisions or take actions in other systems based on prompts. This creates risk when the LLM acts autonomously beyond its intended scope, causing harm in connected systems."},
+  {id:36,domain:2,q:"A recruiting AI systematically favors male candidates due to historical hiring data in its training set. This is BEST described as:",opts:["Hallucination — generating misleading content","Model extraction — reconstructing the model through API queries","Bias amplification — AI reinforcing societal inequalities through biased training data","Strategic misalignment — deploying AI without real business value"],correct:2,exp:"Bias amplification occurs when an AI model reinforces existing inequalities through biased training data. There is no hot fix for biased decision-making — it cannot be patched. These threats must be included in the risk management process alongside technical threats."},
+  {id:37,domain:2,q:"What is the MITRE ATLAS framework primarily used for?",opts:["Classifying AI systems into mandatory risk compliance categories","Providing a knowledge base of adversarial attack techniques targeting AI systems — analogous to MITRE ATT&CK","Managing AI vendor relationships and supply chain due diligence","Defining AI governance structures for regulated industries"],correct:1,exp:"MITRE ATLAS (Adversarial Threat Landscape for AI Systems) captures a knowledge base of attack techniques targeting ML models. It functions analogously to MITRE ATT&CK but specifically for AI systems — used to identify AI-targeted attacks."},
+  {id:38,domain:2,q:"During AI vendor due diligence, which factor is the MOST significant red flag?",opts:["The vendor charges premium pricing","The vendor's model was recently updated with new capabilities","The vendor's model is a 'black box' with resistance to audits and security assessments","The vendor operates across multiple geographic regions"],correct:2,exp:"Resistance to due diligence, auditing, and security assessments is a major red flag. Lack of content provenance mechanisms and refusal to provide transparency into model decision-making are also significant concerns. Transparency is essential for managing AI risk."},
+  {id:39,domain:2,q:"A Fundamental Rights Impact Assessment (FRIA) is BEST described as:",opts:["A financial assessment of ROI impact for high-risk AI, required before budget approval","An assessment of how high-risk AI impacts privacy, data protection, and equality — required by the EU AI Act before deploying high-risk systems","A technical performance benchmark required before certifying AI models for production","An employee survey assessing comfort with AI adoption"],correct:1,exp:"A FRIA is required by the EU AI Act before deploying any high-risk AI system, especially for public bodies. It assesses impact on privacy, data protection, equality, and human rights. Even outside EU requirements, it is useful for any enterprise implementing AI."},
+  {id:40,domain:2,q:"What distinguishes technical from non-technical AI threat remediation?",opts:["Technical threats require vendor notification; non-technical threats can be remediated internally","Technical threats can be patched with code fixes; non-technical threats like bias cannot be patched — there is no hot fix for biased decision-making","Non-technical threats are always more severe and require regulatory reporting","Technical threats affect providers only; non-technical threats affect deployers only"],correct:1,exp:"Ethical concerns cannot be patched — there is no hot fix for biased decision-making. Information security managers must include non-technical AI threats (bias, hallucinations, workforce impact, societal manipulation) in the risk management process alongside technical threats."},
+  {id:41,domain:2,q:"What is 'system prompt leakage' in LLM security?",opts:["When training data is accidentally exposed in model outputs","When the prompts directing an AI model contain sensitive information or guardrail bypass methods — and this information is exposed","When users publicly share internal AI system prompts","When an AI generates outputs that reveal network security configurations"],correct:1,exp:"System prompt leakage is the risk that prompts used to direct the model can contain sensitive information or means to bypass guardrails. When leaked, attackers can understand the model's boundaries and find ways to circumvent safety controls."},
+  {id:42,domain:2,q:"What is the MOST effective approach to mitigate model drift in a deployed AI solution?",opts:["Replace the AI model with a newer vendor version annually","Implement automated monitoring, retraining pipelines, and regular performance metric review","Restrict access to the AI model to prevent unauthorized parameter changes","Encrypt training data to prevent tampering"],correct:1,exp:"Automated monitoring and AI model retraining pipelines are the most effective mitigation for model drift — the gradual degradation of ML performance due to changes in data and relationships. Regular review of precision, recall, and F1 scores enables early drift detection."},
+  {id:43,domain:2,q:"What are the two key risk impacts of data poisoning?",opts:["Data loss and system downtime","Creation of backdoors/Trojans OR sabotage of model safety, trust, or performance","IP theft and competitive loss","Privacy violations and regulatory fines"],correct:1,exp:"Data poisoning manipulates training or validation data to introduce vulnerabilities. The two key risk categories are: (1) creation of a backdoor or Trojan horse to modify specific model behavior, and (2) sabotage of the model to undermine safety, trust, or performance."},
+  {id:44,domain:2,q:"A Privacy Impact Assessment (PIA) should be triggered when:",opts:["The AI development budget exceeds a threshold","There is a change likely to involve a new use for personal data or significantly change how personal data is handled","A new AI vendor is selected regardless of whether personal data is involved","Annual compliance audits are scheduled"],correct:1,exp:"A new PIA should be conducted whenever there is a change likely to involve new uses for personal data or significantly change how it's handled. PIAs identify and mitigate privacy risk, ensuring conformance with legal, regulatory, and policy requirements for privacy."},
+  {id:45,domain:2,q:"An organization discovers it can only remediate a critical AI vendor risk by accepting or stopping the service entirely. The service is business-critical. Which risk response is MOST appropriate?",opts:["Transfer — purchase cyber insurance","Avoid — immediately discontinue the vendor's service","Accept — formally document the risk, establish monitoring, and develop contingency processes","Mitigate — implement compensating controls immediately"],correct:2,exp:"There are situations where a vendor is high risk but an organization chooses to accept it because risk can be adequately monitored and contingency processes exist. Risk acceptance requires monitoring, regular reviews, and clear documentation — not avoidance at all costs."},
+  {id:46,domain:2,q:"What does the NIST AI RMF 'GOVERN' function primarily establish?",opts:["Technical architecture and security controls for AI systems","Risk policies, accountability structures, and a culture of risk management throughout the organization","Methods for quantifying and measuring AI risk","Prioritization frameworks for responding to identified AI risks"],correct:1,exp:"The GOVERN function establishes risk policies, accountability structures, and governance mechanisms to foster a culture of risk management that is positively promoted and present throughout the organization. It is the organizational foundation for AI risk management."},
+  {id:47,domain:2,q:"What is the PRIMARY purpose of a conformity assessment for high-risk AI systems?",opts:["A financial audit of AI development costs","A safety check verifying AI systems meet requirements protecting individual safety, rights, and well-being — before and after deployment","A technical benchmark comparing AI performance against industry standards","An employee assessment measuring comfort with AI adoption"],correct:1,exp:"A conformity assessment is a safety check for high-risk AI systems. It verifies that AI systems are built and operate in accordance with requirements needed to protect individual safety, rights, and overall well-being. It builds trust and minimizes risk before and after deployment."},
+  {id:48,domain:2,q:"What is the correct relationship between 'AI risk appetite' and 'AI risk tolerance'?",opts:["They are identical concepts used interchangeably","Risk appetite defines the overall amount of risk an organization is willing to pursue; tolerance defines the acceptable variance from that appetite","Risk tolerance is set by external regulators; risk appetite is set internally","Risk appetite applies to technical AI risk; risk tolerance applies to ethical AI risk"],correct:1,exp:"Risk appetite represents the overall level of risk an enterprise is willing to accept in pursuit of objectives. Risk tolerance defines acceptable variance from the defined risk appetite. The governing body establishes both, balancing regulatory requirements, business objectives, and stakeholder needs."},
+  {id:49,domain:2,q:"What role does a Software Bill of Materials (SBOM) play in AI supply chain risk management?",opts:["Tracks financial costs of AI software licenses","Documents all components, dependencies, and third-party elements within an AI system — enabling transparency and vulnerability management","Lists pre-approved software vendors for AI procurement","Records employee completions of mandatory AI training"],correct:1,exp:"An SBOM provides transparency into the AI software supply chain by documenting all components. This is key to protecting brand, reputation, and trust. An SBOM enables organizations to track dependencies and respond quickly when vulnerabilities are discovered in components."},
+  {id:50,domain:2,q:"A cybercriminal uses a GenAI tool to create highly convincing personalized phishing emails. What type of AI threat is this?",opts:["Data poisoning — manipulating AI training data","Excessive agency — LLM taking unauthorized autonomous actions","AI-enabled social engineering — using AI to make attacks more effective and harder to detect","Vector embedding weakness — exploiting RAG-based system vulnerabilities"],correct:2,exp:"AI has been leveraged to create increasingly convincing fabricated content and optimize social engineering attacks. Traditional phishing training can be circumvented by evolving AI abilities. Cybercriminals use AI to optimize phishing emails, develop advanced malware, and enhance cyber attacks."},
+  {id:51,domain:2,q:"Under the EU AI Act, how are 'AI providers' and 'AI deployers' distinguished?",opts:["Providers build AI for personal use; deployers build AI for enterprise use","Providers supply AI systems and bear primary compliance responsibility; deployers integrate and use AI systems and bear responsibility for proper use and oversight","Providers are always large technology companies; deployers are always small businesses","Providers are responsible only for data; deployers only for model governance"],correct:1,exp:"An AI provider (vendor) supplies the AI system. Providers are responsible for compliance, conformity assessments, documentation, and transparency. An AI deployer integrates and uses the provided AI and is responsible for HITL oversight, data management, response monitoring, and incident reporting."},
+  {id:52,domain:2,q:"Which AI threat mitigation would be MOST appropriate for addressing deepfake-based identity fraud?",opts:["Implementing rate limiting on AI model APIs","Digital signatures, watermarking, biometric liveness detection, and awareness training","Enforcing data minimization policies for AI training datasets","Implementing role-based access controls on AI model endpoints"],correct:1,exp:"Deepfakes require technical and awareness-based mitigations: strong authentication and biometric liveness detection, watermarking and digital signatures to verify content authenticity, media forensics tools, and regular training to help employees recognize deepfake threats."},
+  {id:53,domain:2,q:"An insider manipulates an LLM's embedding matrices to skew recommendation outputs. What type of attack is this?",opts:["Prompt injection — using prompts to override model instructions","System prompt leakage — exposing proprietary instructions","Embedding tampering — manipulating vector/embedding matrices to skew model results","Model extraction — reconstructing the model through API queries"],correct:2,exp:"Embedding tampering involves manipulation of the embedding matrices representing data as mathematical vectors. This can skew model results — particularly in RAG-based systems where embeddings represent external knowledge. Vector and embedding weaknesses expose unique risk in retrieval-augmented generation systems."},
+  {id:54,domain:2,q:"What is the MOST important reason to revisit risk appetite and tolerance when adopting AI?",opts:["AI projects are always more expensive than traditional IT projects","AI introduces unique risk categories — ethical, human rights, and non-technical — that existing risk appetite definitions may not capture","External auditors require updated risk appetite documentation for AI compliance","AI vendor SLAs require formal risk tolerance definitions"],correct:1,exp:"Given the unique nature of AI risk (ethics, human rights, societal impact, non-technical threats), organizations are strongly advised to revisit and potentially redefine their risk appetite and tolerance criteria. Existing IT risk definitions were not designed for AI-specific considerations."},
+  {id:55,domain:2,q:"What is adversarial testing in the context of AI security risk management?",opts:["Testing whether employees follow AI acceptable use policies","Simulating attack techniques — prompt injection, token manipulation, gradient descent, jailbreaks — to identify model vulnerabilities before deployment","Evaluating AI model performance against competitor benchmarks","Testing whether AI systems comply with GDPR and data residency requirements"],correct:1,exp:"Adversarial testing simulates attacks that adversaries would use: token manipulation, gradient descent attacks, and jailbreak attempts. This is a critical best practice for AI supply chain security. Run adversarial testing as part of model validation to identify vulnerabilities before production."},
+  {id:56,domain:2,q:"What is the PRIMARY security challenge of agentic AI systems compared to traditional AI?",opts:["Agentic AI requires more computing resources","Agentic AI can autonomously make decisions and take real-world actions — requiring HITL oversight, clearly articulated goals, and failsafe mechanisms to prevent unintended consequences","Agentic AI is limited to narrow tasks and cannot adapt","Agentic AI is always internet-connected, creating continuous security risk"],correct:1,exp:"Agentic AI systems are designed to autonomously decide and act to achieve goals, often leveraging tools and APIs. Poorly articulated goals can create unintended consequences. These systems require human oversight to optimize effectiveness and prevent harmful autonomous actions."},
+  {id:57,domain:3,q:"What is the PRIMARY risk of deep learning models in business-critical applications?",opts:["Extremely high implementation and maintenance costs","Limited scalability across different computing platforms","The inability to explain the model's decision-making — the 'black box problem'","Excessive data preprocessing time before training"],correct:2,exp:"ML models — particularly deep learning models — can operate as black boxes, making it difficult to explain how decisions are made. This is a significant risk in business-critical applications where transparency and accountability are required, such as healthcare or credit approvals."},
+  {id:58,domain:3,q:"Which ML paradigm is MOST appropriate for anomaly detection in security logs without labeled attack examples?",opts:["Supervised learning — trained on labeled attack examples","Unsupervised learning — detecting patterns without pre-labeled data","Reinforcement learning — learning through rewards for correctly identified attacks","Self-supervised learning — generating labels from the log data itself"],correct:1,exp:"Unsupervised learning is often used in security for anomaly detection in logs. It detects patterns without labeled data by grouping similar data points, making it ideal when labeled attack examples don't exist. Unsupervised learning always requires HITL validation due to its lack of explainability."},
+  {id:59,domain:3,q:"Which control BEST mitigates data poisoning risk in an AI solution with sensitive training data?",opts:["Regular backups of training data to ensure integrity and availability","Developing AI entirely in-house to maintain full security control","Using conventional vulnerability scanners on training data","Implementing robust access controls, data validation on training data flows, anomaly detection, and integrity monitoring"],correct:3,exp:"Robust access controls and cryptographic controls on data flow are the best established security controls against poisoning. This includes anomaly detection, separating training from production data, using data validation and model ensembles, and model hardening. Backups alone don't prevent poisoning."},
+  {id:60,domain:3,q:"Which control BEST protects an LLM-based chatbot against prompt injection attacks?",opts:["Implementing robust access controls on data sources the chatbot can access","Regularly updating the AI model's algorithms and retraining parameters","Using structured input templates for sanitizing user inputs and validating outputs before processing","Enforcing endpoint security on all AI system client devices"],correct:2,exp:"Using templates for input structuring and sanitization is the best control against prompt injection. Input/output validation and prompt templates screen and sanitize abusive prompts, shielding the AI model from direct manipulation. This protects against prompts designed to override system instructions."},
+  {id:61,domain:3,q:"What is 'overfitting' and what risk does it introduce in production?",opts:["A model trained on too little data that performs poorly on both training and test data","A model that memorizes training data including noise — excellent on training data but poor on new data, leading to faulty predictions in production","A model with too many parameters consuming excessive computational resources","A model trained too many epochs that loses the ability to generalize"],correct:1,exp:"An overfitting model performs excellently on training data but poorly on new data because it memorizes the training data including noise and errors. When deployed, overfitting models make faulty predictions on real-world data. Training vs. test data comparison processes must be in place to detect it."},
+  {id:62,domain:3,q:"Which of the following BEST describes 'Secure by Design' as applied to AI systems?",opts:["Using only security-certified hardware for AI model training","Building AI systems where security is embedded from inception through end of life — not added as an afterthought","Designing AI systems accessible only to authenticated and authorized users","Storing AI models in geographically redundant, SOC 2-certified data centers"],correct:1,exp:"Secure by design ensures products are built to reasonably protect against malicious cyber actors. The three principles are: take ownership of customer security outcomes, embrace radical transparency and accountability, and lead from the top. Security is enmeshed from inception through end of life."},
+  {id:63,domain:3,q:"Which neural network type is BEST suited for natural language processing and sequential data tasks?",opts:["Convolutional Neural Networks (CNNs) — optimized for grid-like data such as images","Feed-Forward Neural Networks (FNNs) — for one-directional information flow","Recurrent Neural Networks (RNNs) — designed for sequential data with loops allowing information to pass between steps","Transformer networks — for batch processing of entire datasets simultaneously"],correct:2,exp:"Recurrent Neural Networks (RNNs) are designed for sequential data — with loops allowing information to pass from one step to the next. They are effective for language translation, speech recognition, and text generation. CNNs are specialized for image processing; FNNs are for non-sequential tasks."},
+  {id:64,domain:3,q:"What is the key security consideration introduced by vector databases in AI systems?",opts:["Vector databases require significantly more storage than traditional databases","Vector databases store data as mathematical representations requiring new access control models — attribute-based, index-based, or query-based — different from traditional database controls","Vector databases are incompatible with existing enterprise encryption standards","Vector databases create processing latency that prevents real-time AI decision-making"],correct:1,exp:"Vector databases store documents, images, and audio as mathematical representations (vectors) with associated metadata. New types of access control models are needed — access may be controlled via an attribute, an index, or a query — all different from traditional database access control models."},
+  {id:65,domain:3,q:"During which AI lifecycle phase is it MOST critical to obtain proper consent for personal data?",opts:["Build/Adapt Model phase — when determining which data to include","Test/Validate phase — when evaluating model performance","Collect and Process Data phase — before any data is gathered or processed","Deploy phase — when data is integrated into the production environment"],correct:2,exp:"During the Collect and Process Data phase, consent should be obtained for all collected data before training begins. Without proper consent and disclosure, the organization risks privacy violations and regulatory non-compliance. Intended dataset use should be clearly outlined and documented."},
+  {id:66,domain:3,q:"What does Human-in-the-Loop (HITL) primarily ensure in AI systems?",opts:["AI systems are programmed exclusively by human developers","A person oversees AI processes and makes final decisions on outputs — especially for high-stakes decisions where safety and accuracy are critical","Human trainers must be physically present during all AI model training sessions","AI models are periodically retrained with new human-curated labeled data"],correct:1,exp:"HITL is a critical AI safety strategy where a person oversees and monitors AI outputs and makes final decisions. It is essential for unsupervised learning outputs that lack explainability, and for high-stakes decisions in healthcare, law enforcement, or financial lending."},
+  {id:67,domain:3,q:"What is 'differential privacy' in the context of AI model security?",opts:["Ensuring multiple AI models produce consistent outputs given the same inputs","A privacy-preserving technique ensuring the AI model does not leak individual training data information in its outputs","A network security protocol protecting communications between users and AI APIs","A method ensuring AI models trained on different datasets produce equivalent predictions"],correct:1,exp:"Differential privacy ensures the model does not leak individual training data information. It is one of several privacy-enhancing technologies integrated into AI systems to ensure data protection — particularly important for preventing membership inference attacks where attackers determine if specific data was in the training set."},
+  {id:68,domain:3,q:"After a data poisoning incident is confirmed, what is the CORRECT eradication approach?",opts:["Immediately delete all model files and start fresh with a new vendor","Restart the AI service and restore from the most recent backup","Use selective retraining on clean data to force the model to forget poisoned data; for LLMs where retraining is impractical, rely on I/O validation as a long-term control","Apply a standard software patch to remove poisoned data from the model"],correct:2,exp:"Long-term eradication includes selective training on new, clean data to force the AI model to forget poisoned data. For LLMs, retraining may be impractical and costly. In such cases, data input/output validation and prompt templates remain effective long-term controls."},
+  {id:69,domain:3,q:"What is the CORRECT description of Zero Trust applied to AI systems?",opts:["Never allowing AI models to access external data sources or third-party APIs","Requiring re-authentication every time a user interacts with an AI system","Never automatically assuming AI decisions are correct — verifying ability, integrity, and benevolence","Isolating all AI systems in network segments completely separate from the corporate network"],correct:2,exp:"Zero trust in AI means decisions made by AI solutions are not automatically assumed to be correct. Three key areas: Ability (can the AI reliably perform its designed task?), Integrity (will the AI properly process data?), and Benevolence (does the AI adhere to do-no-harm principles?)."},
+  {id:70,domain:3,q:"Which correctly describes the OECD AI lifecycle order?",opts:["Build → Plan → Collect Data → Test → Deploy → Monitor","Plan & Design → Collect & Process Data → Build/Adapt Model → Test/Evaluate/Verify/Validate → Deploy → Operate & Monitor","Collect Data → Design → Train → Validate → Deploy → Retire","Design → Procure Data → Test → Train → Deploy → Evaluate"],correct:1,exp:"The OECD AI lifecycle: Plan & Design (concept, objectives, assumptions), Collect & Process Data (gathering, consenting, preprocessing), Build/Adapt Model (selection, calibration, training), Test/TEVV (performance evaluation), Deploy (integrate, document, change management), Operate & Monitor (ongoing monitoring, drift detection, incident response)."},
+  {id:71,domain:3,q:"An enterprise discovers employees are pasting confidential client data into a public GenAI tool. What is the MOST significant risk?",opts:["Copyright infringement from AI summarizing proprietary content","Proprietary and sensitive data permanently entering a public AI model — potentially exposing it to the model provider and future users","Reduced employee productivity from using unofficial tools","Violation of the company's email archiving and retention policy"],correct:1,exp:"Once proprietary data enters a public domain model, significant challenges begin. Guardrails are needed to identify AI applications and prevent data leakage into public models. Shadow AI controls (CASB, DLP, UEBA) should be implemented to detect and prevent unauthorized AI tool use."},
+  {id:72,domain:3,q:"What makes Generative AI (GenAI) models 'non-deterministic' and why is this a governance concern?",opts:["GenAI uses random number generators in its architecture","Unlike conventional software, GenAI does not follow deterministic instructions — the same input can produce different outputs, making decisions harder to explain and requiring perpetual output validation","GenAI models update their weights automatically after each query","GenAI is non-deterministic because it relies on probabilistic sampling that changes with network conditions"],correct:1,exp:"Unlike conventional software where source code produces deterministic outputs, GenAI is non-deterministic. This makes it harder to explain outcomes. Because of AI's susceptibility to variation and manipulation, all output must be perpetually validated — teams must develop mechanisms to assess and approve AI-generated work."},
+  {id:73,domain:3,q:"What is Retrieval-Augmented Generation (RAG) and its key security risk?",opts:["A technique for generating synthetic training data — risk is synthetic data quality","A model adaptation technique combining pre-trained LLMs with external knowledge sources — risk is in how external data is retrieved, stored, and protected in vector databases","A process for restoring AI models from secure backup — risk is restoration of compromised model states","A method for validating AI output accuracy against ground truth — risk is inaccurate ground truth"],correct:1,exp:"RAG combines pre-trained language models with external knowledge sources to augment inputs with domain-specific information. It exposes unique risks: vector and embedding weaknesses, unauthorized access to knowledge base data, and the potential for poisoning the external knowledge source used for retrieval."},
+  {id:74,domain:3,q:"What is the PRIMARY purpose of data minimization in AI systems?",opts:["Reducing the size of training datasets to lower computational training costs","Collecting and processing only the minimum amount of personal data necessary for the specified AI purpose — reducing privacy exposure","Limiting the number of AI models that can concurrently access a shared data repository","Compressing training data files to optimize storage and reduce infrastructure costs"],correct:1,exp:"Data minimization means collecting and processing only the personal data necessary for the specified AI purpose. This privacy principle reduces exposure of personal data, limits privacy risk, and ensures compliance with GDPR and similar regulations. It is a core element of privacy by design."},
+  {id:75,domain:3,q:"What are LIME and SHAP used for in AI governance?",opts:["Threat modeling frameworks specifically designed for AI security assessments","Explainability tools that help interpret individual AI model decisions and quantify feature importance — enabling transparency","AI governance frameworks developed by NIST for measuring trustworthiness","Encryption standards designed for protecting vector database contents"],correct:1,exp:"LIME (Local Interpretable Model-Agnostic Explanations) explains individual AI predictions by approximating the model locally. SHAP (Shapley Additive Explanations) provides feature importance scores for individual predictions. Both help users understand how AI models arrive at specific decisions, supporting transparency and trust."},
+  {id:76,domain:3,q:"What is the key challenge of emergency patching for AI systems compared to traditional software?",opts:["AI patches require regulatory pre-approval before deployment","Emergency fixes require the original AI vendor's involvement","Fixing AI system issues — such as retraining a model — may take hours to weeks, unlike traditional code patches which can be deployed in hours to days","AI patches must be validated against all regulatory frameworks before implementation"],correct:2,exp:"In conventional software, an emergency patch addressing a specific bad code section can be deployed in hours to days. Urgent changes to AI systems cannot be made as easily — training a new AI model may take hours to weeks, fundamentally changing emergency response timelines and business continuity planning."},
+  {id:77,domain:3,q:"What is 'model drift' and why is it a security concern?",opts:["Unauthorized drift of model weights due to adversarial attacks","Gradual degradation of ML model performance due to changes in data or relationships between inputs and outputs over time — leading to faulty decisions","Data leakage occurring as model files drift between cloud storage locations","An AI model gradually expanding its computational footprint"],correct:1,exp:"Model drift is the degradation of ML model performance due to changes in data and relationships between input and output variables. It can result in faulty decision making and bad predictions. Drift detection is a core component of model lifecycle management — ensuring deployed models remain aligned with current business realities."},
+  {id:78,domain:3,q:"Which of the following BEST describes least privilege applied to AI training data?",opts:["Using the smallest AI model architecture capable of completing the task","Ensuring only the minimum necessary users can directly access training datasets and the model — reducing the attack surface for data poisoning","Limiting the volume of training data used to reduce overfitting risk","Restricting AI model outputs to only the specific information the user requested in their prompt"],correct:1,exp:"Least privilege for AI solutions ensures only necessary users can directly access training and testing datasets and the model. This reduces risk of intentional and unintentional data exfiltration, unauthorized modification, and data poisoning by limiting who has write access to training data pipelines."},
+  {id:79,domain:3,q:"What makes STRIDE a limited choice for AI-specific threat modeling?",opts:["STRIDE is too mathematically complex for AI security practitioners","STRIDE lacks the ability to identify AI-specific threats such as adversarial ML, data poisoning, and AI autonomous decision-making risks","STRIDE can only model network-level threats and cannot handle application-layer AI vulnerabilities","STRIDE requires a dedicated AI security team of at least 10 practitioners"],correct:1,exp:"STRIDE (Spoofing, Tampering, Repudiation, Information Disclosure, DoS, Elevation of Privilege) is the most mature threat modeling method, but lacks the ability to address AI-specific challenges: adversarial ML, data poisoning, and AI autonomous decision-making. It also lacks sophistication to adapt to AI agent behaviors."},
+  {id:80,domain:3,q:"Which AI security metrics BEST indicate that an AI model's reliability is degrading in production?",opts:["An increase in the total number of user queries submitted to the AI system","A change in the AI vendor's pricing model","Increasing false positive/negative rates and increasing model drift frequency — indicating the model is losing accuracy relative to current real-world data","A decrease in employee satisfaction scores related to AI tool usability"],correct:2,exp:"Key AI performance metrics indicating reliability degradation include: false positive rate, model drift frequency, and latency/AI response time. Model drift — degradation of ML performance due to changes in data — is a core monitoring concern. Increasing error rates signal that the model needs retraining or replacement."},
+  {id:81,domain:3,q:"What is the relationship between neural networks and deep learning?",opts:["Deep learning and neural networks are completely separate AI approaches","Neural networks with more than three layers (including input and output layers) can be considered a deep learning algorithm","All neural networks are deep learning; deep learning is the overarching category","Deep learning only applies to text-based transformer models"],correct:1,exp:"Neural networks are fundamental components of deep learning. A neural network of more than three layers — including the inputs and the outputs — can be considered a deep learning algorithm. Deep learning's key advantage is autonomous feature extraction, enabling high accuracy in NLP, computer vision, and autonomous systems."},
+  {id:82,domain:3,q:"An AI deployed for employee performance reviews consistently gives lower scores to employees over 50. The FIRST action the governance team should take is:",opts:["Immediately shut down the system and report it as a data breach","Suspend use of the AI for performance reviews, investigate training data for age bias, and conduct a fundamental rights impact assessment","Notify affected employees of their right to appeal AI-generated scores","Retrain the model by excluding age as an input variable while keeping the system running"],correct:1,exp:"When bias is detected, the priority is to stop using the biased system for affected decisions and investigate training data and model for bias. A fundamental rights impact assessment (FRIA) should evaluate the impact on protected groups. Regular bias testing against protected characteristics is required as an ongoing control."},
+  {id:83,domain:3,q:"What is the PRIMARY security concern with storing model weights without appropriate access controls?",opts:["Exposed model weights increase computational costs and slow AI response times","Exposed model weights allow attackers to reconstruct the model, understand its vulnerabilities, manipulate its behavior, or steal the organization's intellectual property","Unsecured model weights violate software licensing agreements","Improperly stored model weights become corrupted, reducing AI model accuracy"],correct:1,exp:"Model weights (stored in formats like .pt, .ckpt) must be secured like other sensitive organizational files. Exposed model weights allow attackers to understand model architecture, find exploitable weaknesses, reconstruct proprietary AI and steal IP, and manipulate model behavior. Access controls and encryption at rest are essential."},
+  {id:84,domain:3,q:"Cloud Access Security Brokers (CASBs) are MOST useful for addressing which AI security concern?",opts:["Protecting AI model weights from unauthorized access in cloud storage","Identifying, monitoring, and controlling employee access to cloud-based AI services — reducing shadow AI risk by providing visibility into unauthorized tool use","Encrypting all data sent to cloud AI processing services","Automatically blocking all access to unapproved cloud AI services on the corporate network"],correct:1,exp:"CASBs help identify, monitor, and control access to cloud-based AI services, making them valuable for addressing shadow AI risk. Along with DLP, UEBA, and data flow monitoring, CASBs provide visibility into what cloud AI tools employees are using — enabling organizations to identify and govern unauthorized use."},
+  {id:85,domain:3,q:"What is the purpose of a Data Processing Agreement (DPA) when deploying a third-party AI solution?",opts:["To define pricing terms and SLAs for AI-as-a-service arrangements","To legally establish how personal data will be managed, protected, and used when shared with a third-party AI provider","To document technical specifications of AI data pipelines and model architecture","To assign financial liability for AI-related security incidents"],correct:1,exp:"When an organization shares personal data with a third-party AI provider, they must enter into a Data Processing Agreement outlining how personal data will be managed. This is legally required under GDPR and similar regulations. The DPA should address data ownership, IP, security requirements, training data origins, and data retention."},
+  {id:86,domain:3,q:"What privacy control ensures individual training data cannot be confirmed in model outputs even if queried?",opts:["Access control lists restricting who can query the AI model","Differential privacy — a mathematical technique ensuring individual training data is not revealed in model outputs","Data anonymization removing all PII before training","Data minimization limiting the amount of personal data in the training set"],correct:1,exp:"Differential privacy mathematically ensures individual training data is not revealed. It specifically addresses membership inference attacks — where attackers attempt to determine if specific individuals' data was used in training. Unlike anonymization (reversible) or access controls (don't protect the model itself), differential privacy provides mathematical guarantees."},
+  {id:87,domain:3,q:"An organization using DevSecOps is deploying an AI solution. What is UNIQUE to AI deployment vs. traditional software?",opts:["AI deployment requires more change management documentation","AI model parameters like temperature can dramatically change output behavior — unlike traditional software variables — and automated promotion pipelines require operational and audit monitoring","AI solutions require longer user acceptance testing cycles","AI deployment is simpler because pre-trained models eliminate infrastructure configuration needs"],correct:1,exp:"For AI systems, model parameters like temperature can dramatically change output variance and behavior in ways unlike traditional software variables. Additionally, if an organization uses automation to promote AI packages or models once committed, this should be monitored by operations and audit. AI deployment requires specific governance around model parameter management."},
+  {id:88,domain:3,q:"Before destroying AI training data whose retention schedule has expired, what should the organization confirm?",opts:["Proceed with scheduled destruction to reduce data breach risk","Archive data in cold storage for five years before final destruction","Review whether the data is needed for investigatory or forensic purposes related to any recent AI incident — incident-related data must be preserved","Transfer data ownership to the AI vendor before destroying internal copies"],correct:2,exp:"If data resulting from an AI process produced unexpected results, great care should be taken to determine whether an incident response should be carried out prior to destruction — the data may be needed for investigatory purposes. Data destruction decisions should be made within a diverse governance structure."},
+  {id:89,domain:3,q:"What distinguishes supervised learning from unsupervised learning from a security risk perspective?",opts:["Supervised learning is completely secure when implemented properly; unsupervised learning has inherent vulnerabilities","Supervised learning relies on human labels (creating human bias risk); unsupervised learning lacks explainability (creating unexplainable output risk) requiring HITL validation","Supervised learning is used exclusively for text; unsupervised learning is used exclusively for images","Supervised learning requires cloud infrastructure and creates vendor lock-in; unsupervised learning runs on-premises"],correct:1,exp:"Supervised learning relies on human involvement for labels, introducing human bias risk. Unsupervised learning has a lack of explainability risk — when evaluating unsupervised learning models, include a human in the loop (HITL) to ensure accuracy and reliability. In security, unsupervised learning is often used for anomaly detection in logs."},
+  {id:90,domain:3,q:"Which combination of controls BEST addresses ethical, privacy, and trust requirements for a consumer-facing AI product?",opts:["Implementing strong access controls, MFA, and API rate limiting","Establishing HITL oversight, bias testing with disparity metrics, differential privacy, explainability documentation (LIME/SHAP), consent management, and fundamental rights impact assessment","Conducting annual penetration testing of all AI APIs and data pipelines","Purchasing AI-specific cyber liability insurance and engaging a third-party AI auditor"],correct:1,exp:"Comprehensive responsible AI requires: HITL oversight for safety and accountability, bias testing for fairness, differential privacy to protect individual data, explainability tools (LIME/SHAP) for transparency, consent management for privacy, and FRIAs to proactively identify harm. Technical controls alone are insufficient — these controls address ethical, privacy, and trust requirements holistically."},
+  {id:91,domain:3,q:"What is Natural Language Processing (NLP) and how is it used in AI security applications?",opts:["A hardware protocol for enabling voice interfaces in AI security systems","An AI branch enabling computers to understand, interpret, and generate human language — used in security for anomaly detection, phishing detection, and screening emails for fraudulent content","A network security protocol for encrypting communications between AI systems and databases","A standardized method for converting human-readable security policies into machine-executable rules"],correct:1,exp:"NLP is an AI branch combining computational linguistics, ML, and deep learning to process human language. In security, NLP is used in AI-powered cybersecurity platforms for anomaly detection and to screen emails for fraudulent content — helping organizations detect phishing and social engineering attacks more effectively."},
+  {id:92,domain:3,q:"What is model watermarking in the context of AI security?",opts:["Adding visible copyright notices to AI-generated images and text outputs","A technique for embedding identifying markers in AI models or their outputs — enabling detection of model theft, unauthorized copying, or tracing the source of AI-generated content","A database management technique for tracking changes to model training datasets","A method for encrypting model weights to prevent unauthorized access"],correct:1,exp:"Model watermarking embeds identifying information in AI models or their outputs to detect theft, unauthorized copying, or misuse. It is a cryptographic and integrity threat mitigation technique. Digital signatures and watermarking can also be used for deepfake detection to verify the authenticity of AI-generated content."},
+  {id:93,domain:3,q:"What does 'data lag' in AI mean and why is it a risk?",opts:["Network latency caused by processing large AI model outputs","The gap between when training data was collected and when the model is deployed — the model may be outdated relative to current real-world conditions when it enters production","Delays in AI system response time during peak computational load periods","The time required to retrain an AI model after detecting performance degradation from drift"],correct:1,exp:"AI models are often trained on historical data, and the training process can take weeks to months. This means the model may be outdated by the time it reaches production — a risk called data lag. Continuously monitoring for concept drift and establishing retraining pipelines helps mitigate this risk."},
+  {id:94,domain:3,q:"What is the role of UEBA in AI-enabled security monitoring?",opts:["UEBA directly trains AI models on behavioral data to detect threats without human analysts","UEBA employs AI to detect anomalous user behavior by analyzing large amounts of user data, network activity, and IT asset interactions — enabling early detection of insider threats and compromised accounts","UEBA replaces traditional SIEM systems in organizations with mature AI security programs","UEBA is primarily used for regulatory compliance reporting of user activity logs"],correct:1,exp:"UEBA employs AI to detect anomalous user behavior and analyze large amounts of user data related to networks and IT assets. Along with SIEM, SOAR, and XDR — which now leverage AI capabilities — UEBA is part of the AI-enhanced security monitoring toolkit for proactively detecting and addressing threats before they escalate."},
+  {id:95,domain:3,q:"What is the significance of documenting 'what is NOT known' about an AI model's behavior?",opts:["It is primarily a legal requirement to limit organizational liability for AI errors","Documenting unknowns is as important as documenting knowns — unintended results from unknowns must factor into trust determination, and the black box nature changes the risk acceptance paradigm for security professionals","Documenting unknowns serves no practical purpose since only known behaviors can be governed","It is only relevant for research AI systems — production AI systems should have no unknowns"],correct:1,exp:"The documentation of what is NOT known about how an AI model fails is as important as what it does know. AI is experimental — automation's ability to adapt and learn from itself leads to unexpected, unexplainable outcomes. This changes the risk acceptance paradigm. Unintended results from unknowns must be considered in trust determination."},
+  {id:96,domain:3,q:"An AI model is found to consistently underperform on both training and test data, with predictions showing systematic bias. This is BEST described as:",opts:["Overfitting — the model memorized training data too precisely","Underfitting — the model is too simplistic to identify patterns, leading to poor performance and systematic bias across both datasets","Model drift — performance degraded due to changes in production data over time","Data poisoning — the training data was manipulated to introduce deliberate bias"],correct:1,exp:"Underfitting occurs when the ML model is too simplistic to identify patterns in training data. Performance is poor for both training data and test data, and inaccurate predictions show bias. Processes need to be in place to identify underfitting and determine solutions — typically more complex model architecture or better training data."},
+  {id:97,domain:3,q:"During the Test/TEVV phase of the AI lifecycle, what does TEVV stand for?",opts:["Threat, Evaluate, Verify, Validate","Test, Evaluate, Verify, Validate","Trace, Examine, Verify, Validate","Test, Enumerate, Validate, Verify"],correct:1,exp:"TEVV stands for Test, Evaluate, Verify, and Validate. This phase covers: testing for performance across all dimensions (bias, fairness, adversarial inputs), evaluating outcomes against requirements, verifying the system operates as designed, and validating it meets intended use requirements. Failure to test for bias and fairness at this phase is a key lifecycle risk."},
+  {id:98,domain:3,q:"What access control consideration is UNIQUE to AI systems compared to traditional software?",opts:["AI systems require the same access controls as any other enterprise software","AI access control must address training datasets, test data, model weights, and AI-generated outputs — with validation testing to ensure proper access across all these new artifact types","AI systems should use only biometric authentication due to data sensitivity","AI access controls must be recertified monthly instead of annually"],correct:1,exp:"An AI access control policy must cover all AI artifact types. Key considerations: a centralized data access control policy with RBAC, validation testing to ensure proper access to mixed data models, and review of access controls after each development release to ensure testers no longer have access when no longer needed."},
+  {id:99,domain:3,q:"What is the PRIMARY function of security monitoring specific to AI model drift?",opts:["Monitoring unauthorized access attempts to the AI model API endpoints","Tracking changes in data distributions and model output patterns over time to detect when model retraining is required and prevent faulty decision-making","Monitoring the model's computational resource consumption to prevent cost overruns","Verifying that the model is operating within its licensed usage parameters"],correct:1,exp:"Drift detection is a core component of model lifecycle management. Security monitoring specific to AI processes adds a layer on top of routine security monitoring. The goal is to detect when model performance is degrading and trigger retraining or escalation before drift causes material harm to business decisions."},
+  {id:100,domain:3,q:"What is the 'Three Principles of Secure by Design' for AI systems?",opts:["Authenticate, Authorize, Audit — the three pillars of AI access control","Take ownership of customer security outcomes; embrace radical transparency and accountability; lead from the top","Protect, Detect, Respond — the three core security functions adapted for AI","Plan, Build, Monitor — the three phases of the AI secure development lifecycle"],correct:1,exp:"The three principles of Secure by Design are: (1) Take ownership of customer security outcomes — e.g., proper consent management, securing data pipelines; (2) Embrace radical transparency and accountability; and (3) Lead from the top — organizational commitment and governance. These ensure security is embedded from inception rather than added as an afterthought."},
+  {id:101,domain:3,q:"What is the PRIMARY purpose of AI security awareness training for ALL employees?",opts:["To certify employees as authorized AI practitioners for compliance reporting","To address human-related risks — shadow AI use, data leakage, and bias in outputs — through comprehensive education on ethical, privacy, and adversarial AI concerns","To replace traditional security awareness training with AI-focused content","To reduce cyber insurance premiums by demonstrating organizational AI competency"],correct:1,exp:"Leadership needs the full engagement of all employees to address human-related AI risks. Training components include: security, privacy, and ethics; understanding AI outputs; bias detection; copyright and IP concerns; explainability and black box risk; identification of model drift; and awareness of adversarial AI and model manipulation techniques."},
+  {id:102,domain:3,q:"What is the security purpose of separating AI training data from production data?",opts:["To improve AI model performance by preventing contamination between datasets","To comply with GDPR's data minimization and purpose limitation requirements","To prevent data integrity attacks from affecting live AI operations and limit the blast radius of any poisoning attempt to the training environment","To reduce storage costs by archiving training data separately from operational systems"],correct:2,exp:"Separating training from production data is a key data integrity control. Attacks on training data cannot directly affect production AI outputs, and limits the blast radius of data poisoning attacks. This is one of the key data integrity considerations alongside anomaly detection, data validation, and using model ensembles."},
+  {id:103,domain:3,q:"Which AI lifecycle phase is MOST vulnerable to supply chain attacks targeting pre-trained models?",opts:["Plan & Design phase","Collect & Process Data phase","Build/Adapt Model phase — particularly when using third-party pre-trained models for fine-tuning","Operate & Monitor phase"],correct:2,exp:"Development time threats occur during AI system development. When using a third-party pre-trained model for further training or fine-tuning, the model itself may already be poisoned. Three potential methods of model poisoning: poisoning the data, changing model parameters directly, or poisoning through a model supplier."},
+  {id:104,domain:3,q:"What AI security metric would MOST directly indicate a potential insider threat or unauthorized model access?",opts:["An increase in model response latency during peak hours","Anomalies in model weight file access logs or unusual data export patterns from training environments — detected through UEBA and data flow monitoring","A decrease in model prediction accuracy for a single use case category","Increased customer complaints about AI-generated content quality"],correct:1,exp:"UEBA employs AI to detect anomalous user behavior and unusual access to AI assets. For insider threats specifically, anomalies in access to model weights, training data exports, and unusual activity in development environments are key indicators. Combining UEBA with data flow monitoring provides early detection of unauthorized model access."},
+  {id:105,domain:3,q:"What makes agentic AI governance fundamentally different from governing traditional AI models?",opts:["Agentic AI uses more complex algorithms that require specialized governance frameworks","Agentic AI can autonomously execute multi-step tasks across connected systems — requiring governance to cover intended goals, action boundaries, HITL checkpoints, and fallsafe mechanisms not needed for passive AI models","Agentic AI is primarily a research concept and not yet used in enterprise environments","Agentic AI governance is simpler because the AI self-monitors its own behavior and compliance"],correct:1,exp:"Agentic AI systems autonomously decide and act to achieve goals, often using tools and APIs in other systems. Governance must cover: clearly articulated goals (to prevent misaligned autonomous actions), defined action boundaries, mandatory HITL checkpoints for consequential decisions, failsafe mechanisms, and audit trails of autonomous actions — none of which are needed for passive prediction models."},
+];
+
+const GLOSSARY = [
+  {term:"AI Governance",domain:1,def:"The senior oversight, processes, standards, and safeguards ensuring safe and ethical use of AI. Addresses inherent flaws from human-created AI including bias and discrimination. The governing body is ultimately responsible and accountable — this cannot be delegated."},
+  {term:"AI Charter",domain:1,def:"A formal document defining the scope, objectives, stakeholders, governance structure, risk management plan, success metrics, and approval signatures for an AI initiative. It aligns stakeholders and sets expectations for the project."},
+  {term:"AI Steering Committee",domain:1,def:"A senior-level committee providing strategic oversight for AI initiatives. Chaired by a CIO/CTO/CDO, it includes domain experts, technical leaders, and compliance officers. Meets monthly/quarterly and makes major AI decisions."},
+  {term:"Acceptable Use Policy (AUP)",domain:1,def:"A policy defining approved and unauthorized uses of AI within an organization. Requires senior management support. Must be based on organizational needs, legal obligations, and risk assessment. Reviewed at least annually or after any significant change."},
+  {term:"Shadow AI",domain:1,def:"The use of unapproved AI applications within an organization without IT oversight. Significant risks include data breaches, compliance violations, and reputational damage. Addressed with CASB, DLP, UEBA, shadow IT policy, and data flow monitoring."},
+  {term:"Model Card",domain:1,def:"A document providing transparency about an AI model's details, intended use, architecture, training data, performance metrics, fairness constraints, and known limitations. Fosters trust and informs deployment decisions. Critical for incident investigation."},
+  {term:"Data Classification",domain:1,def:"Categorizing data based on sensitivity. Tiers: Public (freely accessible), Internal (employee-only), Confidential (private; exposure has negative ramifications), Restricted (highly sensitive; exposure risks criminal charges or legal fines)."},
+  {term:"Five Vs of Big Data",domain:1,def:"Volume (amount of data), Velocity (speed of data generation), Variety (different data types), Veracity (accuracy and trustworthiness), and Value (usefulness for decision-making). All applicable to AI data collection and management."},
+  {term:"AI-Enabled Computing Environment (ACE)",domain:1,def:"A complex AI system that may have multiple owners, models, versions, datasets, algorithms, SDLC considerations, third-party tools, and regulatory requirements. Not a simple application — requires comprehensive asset management and governance."},
+  {term:"Anthropomorphizing AI",domain:1,def:"Incorrectly attributing human characteristics (thinking, judging, moral reasoning) to AI systems. A risk because governing body members can be held legally accountable for any bad actions executed by an AI solution they oversee."},
+  {term:"EU AI Act",domain:1,def:"A mandatory EU regulation with four risk tiers: Unacceptable (prohibited — e.g., social credit scoring), High (strict controls required — healthcare, law enforcement), Limited (transparency obligations — chatbots), and Minimal (no specific obligations — spam filters). Legally binding for providers and deployers."},
+  {term:"COBIT 2019",domain:1,def:"ISACA's IT governance and management framework adaptable for AI governance. Covers building (BAI), operating (DSS), and monitoring (MEA) AI systems. Emphasizes accountability, responsibility, and optimal use of IT investments."},
+  {term:"Value Alignment",domain:1,def:"Designing AI systems that behave consistently with human values and ethical principles. Differs by organization and culture. Common elements: ethical foundations, legal compliance, community values, and operational strategies."},
+  {term:"Data Flow Diagram (DFD)",domain:1,def:"Illustrates high-level horizontal movement of data between systems across the enterprise. Better for showing data flow at a high level of abstraction. Distinct from usage/activity diagrams which show workflow steps within specific processes."},
+  {term:"AI Readiness",domain:1,def:"An organization's preparedness to adopt AI with adequate governance. Key considerations include transparency, explainability, impact on commercial operations and brand, reduction of existing risk, and greater confidence in data acquisition and quality."},
+  {term:"NIST AI RMF",domain:2,def:"National Institute of Standards and Technology AI Risk Management Framework. Four functions: Govern (policies, accountability), Map (identify characteristics and risks), Measure (analyze and assess), Manage (prioritize and respond). Voluntary, flexible, and industry-agnostic — no fixed risk thresholds."},
+  {term:"Prompt Injection",domain:2,def:"An attack where an adversary uses specific prompts to alter an LLM's behavior, overriding system instructions. Mitigations: input sanitization, structured prompt templates, I/O validation, and monitoring for atypical input patterns."},
+  {term:"Data Poisoning",domain:2,def:"Manipulation of training or validation data to introduce vulnerabilities, backdoors, or biases into AI models. Two key risk impacts: (1) creation of backdoors/Trojans and (2) sabotage of model safety, trust, or performance."},
+  {term:"Model Poisoning",domain:2,def:"Directly changing a model's parameters, architecture, or training libraries to produce malicious results. Three methods: poisoning the data used to train the model, changing model parameters directly, or poisoning through a model supplier."},
+  {term:"Excessive Agency",domain:2,def:"An LLM vulnerability where the model gains ability to make decisions or take actions in other systems via extensions — beyond its intended scope. Mitigated by HITL requirements, clearly defined action boundaries, and redundant decision pathways."},
+  {term:"System Prompt Leakage",domain:2,def:"The risk that prompts directing an AI model contain sensitive information (proprietary details or guardrail bypass methods) that, if leaked, enables attackers to understand the model's boundaries and find ways to circumvent safety controls."},
+  {term:"MITRE ATLAS",domain:2,def:"Adversarial Threat Landscape for Artificial Intelligence Systems. A knowledge base of attack techniques targeting AI/ML systems, analogous to MITRE ATT&CK for traditional systems. Used by security teams to identify AI-targeted attacks."},
+  {term:"MAESTRO",domain:2,def:"Multi-Agent Environment Security, Threat, Risk & Outcome. The only threat modeling framework purpose-built for AI systems. Addresses AI-specific categories: multi-agent environments, adversarial ML, and AI autonomy risks. All other frameworks (STRIDE, PASTA, OCTAVE) lack AI-specific threat coverage."},
+  {term:"AI Provider",domain:2,def:"The entity that supplies an AI system or component. Under the EU AI Act, providers bear primary compliance responsibility — ensuring conformity assessments, maintaining technical documentation, and providing transparency about model capabilities."},
+  {term:"AI Deployer",domain:2,def:"The entity that integrates and uses a third-party AI system. Responsible for: using AI as directed, assigning qualified individuals for HITL oversight, managing data inputs, monitoring responses, reporting serious incidents, and maintaining appropriate logs."},
+  {term:"Conformity Assessment",domain:2,def:"A safety check for high-risk AI systems verifying they meet requirements protecting individual safety, rights, and well-being before and after deployment. Focuses on the provider's quality management system and technical documentation."},
+  {term:"Fundamental Rights Impact Assessment (FRIA)",domain:2,def:"Required by the EU AI Act before deploying high-risk AI systems. Assesses impact on privacy, data protection, equality, and human rights. Recommended for any organization implementing AI, not just EU-regulated entities."},
+  {term:"Privacy Impact Assessment (PIA)",domain:2,def:"An analysis of how personal information is collected, used, shared, and maintained. Triggered by changes likely to involve new uses of personal data or significant changes to how it's handled. Identifies and mitigates privacy risks."},
+  {term:"Vendor Lock-in",domain:2,def:"Risk created by sole-sourcing to a single AI provider — if that provider experiences an incident (breach, ransomware, outage), the dependent organization is directly impacted with no alternative. Mitigated through diversification and business continuity planning."},
+  {term:"Software Bill of Materials (SBOM)",domain:2,def:"A document listing all components, dependencies, and third-party elements within an AI software system. Enables transparency and vulnerability management in the AI supply chain — helping organizations track dependencies and respond quickly to newly discovered vulnerabilities."},
+  {term:"Bias Amplification",domain:2,def:"When an AI model reinforces existing societal inequalities through biased training data. A non-technical AI threat that cannot be patched — there is no 'hot fix' for biased decision-making. Requires diverse training datasets and ongoing bias detection audits."},
+  {term:"Retrieval-Augmented Generation (RAG)",domain:2,def:"A model adaptation technique combining pre-trained language models with external knowledge sources to augment inputs with up-to-date domain-specific information. Introduces unique risks including vector/embedding weaknesses and knowledge base poisoning."},
+  {term:"Risk Appetite",domain:2,def:"The overall amount of AI-related risk an organization is willing to accept in pursuit of strategic objectives. Established by the governing body. Must be revisited when adopting AI since AI introduces unique non-technical and ethical risk categories not covered by existing IT risk appetite definitions."},
+  {term:"Adversarial Testing",domain:2,def:"Simulating attack techniques — prompt injection, token manipulation, gradient descent, jailbreaks — to identify vulnerabilities in AI models before deployment. A critical best practice for AI supply chain security and model validation."},
+  {term:"Machine Learning (ML)",domain:3,def:"An AI technique giving computers the ability to learn without being explicitly programmed. Three main paradigms: supervised learning (labeled data), unsupervised learning (unlabeled data), and reinforcement learning (reward-based). All require vast amounts of data."},
+  {term:"Deep Learning (DL)",domain:3,def:"A subset of ML employing multi-layered algorithms (neural networks with more than 3 layers) that gradually learn hierarchical representations of data. Key advantage: autonomous feature extraction. Powers GenAI, computer vision, speech recognition, and NLP."},
+  {term:"Generative AI (GenAI)",domain:3,def:"A subset of deep learning that generates new content — text, images, code, translations, music. GenAI models are non-deterministic (same input can produce different outputs), requiring perpetual human validation of all outputs. The source of LLM capabilities."},
+  {term:"Large Language Models (LLMs)",domain:3,def:"AI systems trained on vast textual data using transformer architecture to generate human-like responses. Used for summarization, translation, chatbots. Subject to LLM-specific attacks: prompt injection, excessive agency, system prompt leakage, data poisoning."},
+  {term:"Transformer Architecture",domain:3,def:"An AI model architecture using attention mechanisms to process relationships in data — particularly language — simultaneously rather than sequentially. Enables faster learning and is the foundation of modern LLMs like GPT, BERT, and Claude."},
+  {term:"Supervised Learning",domain:3,def:"An ML paradigm where models are trained on labeled data with known outcomes. High human involvement creates human bias risk from labeler subjectivity. Used for classification, regression, fraud detection, spam filtering."},
+  {term:"Unsupervised Learning",domain:3,def:"An ML paradigm finding hidden patterns in unlabeled data through clustering and dimensionality reduction. Key risk: lack of explainability. Always include HITL validation. Used in security for anomaly detection in logs where labeled attack examples don't exist."},
+  {term:"Reinforcement Learning (RL)",domain:3,def:"An ML paradigm where an agent learns optimal actions through trial and error — receiving rewards for good actions and penalties for bad ones. Used for robotics, games, and dynamic recommendation systems. Key risk: misaligned reward functions causing unintended behavior."},
+  {term:"Human-in-the-Loop (HITL)",domain:3,def:"A critical AI safety and oversight strategy ensuring a person oversees AI outputs and makes final decisions. Essential for: unsupervised learning outputs that lack explainability, high-stakes decisions in healthcare/law enforcement/finance, and any AI where errors could cause significant harm."},
+  {term:"Model Drift",domain:3,def:"Gradual degradation of ML model performance due to changes in data distributions or the relationship between inputs and outputs over time. Can lead to faulty decisions. Core of model lifecycle management — requires automated monitoring and retraining pipelines."},
+  {term:"Overfitting",domain:3,def:"When an ML model memorizes training data including noise and outliers. Excellent performance on training data but poor performance on new data. When deployed, leads to faulty production predictions. Detected by comparing training vs. test data performance."},
+  {term:"Underfitting",domain:3,def:"When an ML model is too simplistic to identify patterns in training data. Poor performance on both training and test data with systematic bias in predictions. Requires more complex model architecture, more training data, or better feature engineering."},
+  {term:"Zero Trust for AI",domain:3,def:"Never automatically assuming AI decisions are correct. Three key areas: Ability (can the AI reliably perform its task?), Integrity (will data be processed correctly?), and Benevolence (does the AI adhere to do-no-harm principles?). Decisions made by AI must be verified, not assumed correct."},
+  {term:"Differential Privacy",domain:3,def:"A mathematical technique ensuring AI models do not reveal individual training data in outputs. Specifically addresses membership inference attacks. Provides mathematical privacy guarantees — unlike anonymization (which can be reversed) or access controls (which don't protect the model itself)."},
+  {term:"Secure by Design",domain:3,def:"Building AI systems where security is embedded from inception through end of life. Three principles: (1) take ownership of customer security outcomes, (2) embrace radical transparency and accountability, (3) lead from the top. Security is not added as an afterthought."},
+  {term:"LIME",domain:3,def:"Local Interpretable Model-Agnostic Explanations — an explainability tool that explains individual AI model predictions by approximating the model locally. Helps users understand why the model made a specific decision for a specific input. Part of AI trust and governance."},
+  {term:"SHAP",domain:3,def:"Shapley Additive Explanations — an explainability tool providing feature importance scores for individual AI model predictions. Shows how much each input feature contributed to a specific output. Supports transparency auditing and fairness assessment."},
+  {term:"Vector Database",domain:3,def:"A database storing documents, images, and audio as mathematical representations (vectors) with metadata. Used in RAG-based AI systems. Requires new access control models — attribute-based, index-based, or query-based — different from traditional database controls."},
+  {term:"Agentic AI",domain:3,def:"AI systems designed to autonomously decide and act to achieve goals, often leveraging tools and APIs in other systems. Requires strong HITL oversight, clearly articulated goals, defined action boundaries, and failsafe mechanisms. Use cases include customer service, healthcare diagnostics, and workflow automation."},
+  {term:"Data Minimization",domain:3,def:"Collecting and processing only the minimum amount of personal data necessary for the specified AI purpose. A core privacy-by-design principle reducing privacy exposure and ensuring compliance with GDPR and similar regulations throughout the AI lifecycle."},
+  {term:"UEBA",domain:3,def:"User and Entity Behavior Analytics — employs AI to detect anomalous user behavior by analyzing user data, network activity, and IT asset interactions. Used for early detection of insider threats and compromised accounts. Part of the AI-enhanced security monitoring toolkit."},
+  {term:"Model Drift",domain:3,def:"Gradual degradation of ML model performance due to changes in data distributions or relationships between inputs and outputs over time. Two types: Data drift (input distribution changes) and Concept drift (relationship between inputs and targets changes). Requires automated monitoring and retraining pipelines."},
+  {term:"OWASP Top 10 for LLMs",domain:2,def:"A framework listing the most critical vulnerabilities in large language model applications: Prompt Injection, Sensitive Information Disclosure, Data/Model Poisoning, Improper Output Handling, Excessive Agency, System Prompt Leakage, Supply Chain Risks, and Vector/Embedding Weaknesses. Essential exam reference."},
+  {term:"ISO/IEC 42001",domain:1,def:"International standard for AI management systems. Defines requirements for responsible AI governance — covering AI strategy, risk management, data governance, and transparency. Complements ISO 27001 (information security) for organizations deploying AI."},
+  {term:"Embedding Tampering",domain:2,def:"Manipulation of the embedding matrices representing data as mathematical vectors. This skews model results — particularly in RAG-based systems where embeddings represent external knowledge. A form of supply chain attack targeting the vector representation layer."},
+];
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+const state = {
+  screen: 'home',
+  quizDomain: 'all',
+  quizCount: 10,
+  questions: [],
+  qIdx: 0,
+  selected: null,
+  answers: [],
+  isPractice: false,
+  glossSearch: '',
+  glossTerm: null,
+  reviewMode: false,
+  reviewIdx: 0,
+};
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+function badge(domain) {
+  const cls = DOMAIN_COLORS[domain].badge;
+  return `<span class="badge ${cls}">Domain ${domain}</span>`;
+}
+function pct(num, den) {
+  return den ? Math.round(num / den * 100) : 0;
+}
+function scoreColor(p) {
+  if (p >= 70) return { ring: '#16A34A', fill: '#16A34A', textColor: '#4ADE80', bg: 'rgba(22,163,74,.12)' };
+  if (p >= 56) return { ring: '#D97706', fill: '#D97706', textColor: '#FCD34D', bg: 'rgba(217,119,6,.12)' };
+  return { ring: '#DC2626', fill: '#DC2626', textColor: '#F87171', bg: 'rgba(220,38,38,.12)' };
+}
+
+// ═══════════════════════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════════════════════
+function renderHome() {
+  const el = document.getElementById('screen-home');
+  el.innerHTML = `
+    <div class="home-hero">
+      <div class="hero-logo">ISACA · AAISM</div>
+      <div class="hero-title">Advanced in AI<br>Security Management</div>
+      <div class="hero-sub">Official Study App · All Three Domains</div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-val">90</div><div class="stat-lbl">Questions</div></div>
+      <div class="stat-box"><div class="stat-val">2.5h</div><div class="stat-lbl">Duration</div></div>
+      <div class="stat-box"><div class="stat-val">450</div><div class="stat-lbl">To Pass</div></div>
+    </div>
+    <div class="section-label">Study Tools</div>
+    <div class="feat-card" onclick="openGlossary()">
+      <div class="feat-icon" style="background:rgba(37,99,235,.12)">📖</div>
+      <div class="feat-info">
+        <div class="feat-title">Glossary</div>
+        <div class="feat-desc">Look up definitions from all three domains. Search and browse ${GLOSSARY.length} key terms.</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-card" onclick="openQuizConfig()">
+      <div class="feat-icon" style="background:rgba(13,148,136,.12)">✏️</div>
+      <div class="feat-info">
+        <div class="feat-title">Quiz Mode</div>
+        <div class="feat-desc">10 or 20 questions. Choose a single domain or mix all three.</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="feat-card" onclick="startPracticeTest()">
+      <div class="feat-icon" style="background:rgba(217,119,6,.12)">📋</div>
+      <div class="feat-info">
+        <div class="feat-title">Practice Test</div>
+        <div class="feat-desc">Full 90-question exam weighted by domain. Emulates the real AAISM exam.</div>
+      </div>
+      <div class="feat-arrow">›</div>
+    </div>
+    <div class="foot-note">Prerequisite: Active CISM or CISSP · Passing score: 450/900 · 12-month eligibility<br>Based on the official ISACA AAISM Review Manual</div>
+  `;
+}
+
+function renderGlossary() {
+  const el = document.getElementById('screen-glossary');
+  const filtered = GLOSSARY.filter(g => {
+    const t = state.glossSearch.toLowerCase();
+    return !t || g.term.toLowerCase().includes(t) || g.def.toLowerCase().includes(t);
+  }).sort((a, b) => a.term.localeCompare(b.term));
+
+  el.innerHTML = `
+    <div class="topbar">
+      <button class="back-btn" onclick="show('home')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="topbar-title">Glossary</span>
+    </div>
+    <div class="search-wrap">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" placeholder="Search ${GLOSSARY.length} terms…" value="${state.glossSearch}" oninput="state.glossSearch=this.value;renderGlossary()">
+    </div>
+    <div class="chip-scroll" style="margin-bottom:12px">
+      ${['All','Domain 1','Domain 2','Domain 3'].map((l, i) => {
+        const v = i === 0 ? 'all' : String(i);
+        const active = (state.glossSearch === '' && v === 'all') ? '' : '';
+        return `<button class="chip" onclick="filterGloss(${i})">${l}</button>`;
+      }).join('')}
+    </div>
+    <div class="gloss-list fade-in">
+      ${filtered.length === 0 ? '<div style="padding:24px;text-align:center;color:var(--text3);font-size:14px">No terms found</div>' :
+        filtered.map(g => `
+        <div class="gloss-item" onclick="openGlossTerm(${GLOSSARY.indexOf(g)})">
+          <div class="gloss-term">${g.term} ${badge(g.domain)}</div>
+          <div class="gloss-preview">${g.def}</div>
+        </div>`).join('')}
+    </div>
+  `;
+}
+
+function renderGlossDetail() {
+  const g = state.glossTerm;
+  const related = GLOSSARY.filter(x => x.domain === g.domain && x !== g).slice(0, 3);
+  const el = document.getElementById('screen-gloss-detail');
+  el.innerHTML = `
+    <div class="topbar">
+      <button class="back-btn" onclick="show('glossary')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="topbar-title">Definition</span>
+    </div>
+    <div style="padding:16px">
+      <div class="card fade-in" style="margin:0 0 12px">
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <span style="font-size:19px;font-weight:600;color:var(--text);flex:1;line-height:1.3">${g.term}</span>
+          ${badge(g.domain)}
+        </div>
+        <div style="height:1px;background:var(--border);margin-bottom:14px"></div>
+        <div style="font-size:14px;color:var(--text2);line-height:1.75">${g.def}</div>
+      </div>
+      ${related.length ? `<div class="section-label" style="padding:0;margin-bottom:8px">Related — ${DOMAIN_COLORS[g.domain].label}</div>
+        ${related.map(r => `
+        <div class="card" style="margin:0 0 8px;cursor:pointer" onclick="openGlossTerm(${GLOSSARY.indexOf(r)})">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">${r.term}</div>
+          <div style="font-size:12px;color:var(--text3);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${r.def}</div>
+        </div>`).join('')}` : ''}
+    </div>
+  `;
+}
+
+function renderQuizConfig() {
+  const el = document.getElementById('screen-quiz-config');
+  const pool = state.quizDomain === 'all' ? QUESTIONS : QUESTIONS.filter(q => q.domain === parseInt(state.quizDomain));
+  const available = pool.length;
+  el.innerHTML = `
+    <div class="topbar">
+      <button class="back-btn" onclick="show('home')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="topbar-title">Quiz Setup</span>
+    </div>
+    <div style="padding:16px">
+      <div class="card" style="margin:0 0 12px">
+        <div class="section-label" style="padding:0;margin-bottom:10px">Questions</div>
+        <div class="seg">
+          <button class="seg-btn ${state.quizCount===10?'active':''}" onclick="state.quizCount=10;renderQuizConfig()">10 Questions</button>
+          <button class="seg-btn ${state.quizCount===20?'active':''}" onclick="state.quizCount=20;renderQuizConfig()">20 Questions</button>
+        </div>
+      </div>
+      <div class="card" style="margin:0 0 12px">
+        <div class="section-label" style="padding:0;margin-bottom:10px">Domain</div>
+        <div class="chip-scroll" style="padding:0;gap:8px;flex-wrap:wrap">
+          ${[['all','All Domains'],['1','Domain 1 — Governance'],['2','Domain 2 — Risk Mgmt'],['3','Domain 3 — Technologies']].map(([v,l]) =>
+            `<button class="chip ${state.quizDomain===v?'active':''}" onclick="state.quizDomain='${v}';renderQuizConfig()">${l}</button>`
+          ).join('')}
+        </div>
+      </div>
+      <div class="card" style="margin:0 0 20px;border-color:rgba(37,99,235,.2);background:rgba(37,99,235,.06)">
+        <div style="font-size:13px;color:var(--text2);line-height:1.6">
+          ${state.quizCount} questions from ${state.quizDomain==='all'?'all three domains':`Domain ${state.quizDomain}`}. 
+          ${available < state.quizCount ? `<span style="color:#F87171">Only ${available} questions available for this selection.</span>` : `${available} questions available.`}
+          Each answer includes a detailed explanation.
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="startQuiz()" ${available === 0 ? 'disabled' : ''}>Start Quiz</button>
+    </div>
+  `;
+}
+
+function renderQuiz() {
+  if (state.qIdx >= state.questions.length) { renderResults(); show('results'); return; }
+  const q = state.questions[state.qIdx];
+  const el = document.getElementById('screen-quiz');
+  const p = pct(state.qIdx + 1, state.questions.length);
+  const sel = state.selected;
+
+  let explainHtml = '';
+  if (sel !== null) {
+    const isCorrect = sel === q.correct;
+    explainHtml = `
+      <div class="explain ${isCorrect ? 'correct-box' : 'wrong-box'}" style="margin-top:4px">
+        <div class="explain-label">${isCorrect ? '✓ Correct!' : '✗ Incorrect — correct answer: ' + ['A','B','C','D'][q.correct]}</div>
+        <div class="explain-text">${q.exp}</div>
+      </div>
+      <div style="padding:16px 0 0">
+        <button class="btn btn-primary" onclick="nextQuestion()">${state.qIdx < state.questions.length - 1 ? 'Next Question →' : 'See Results'}</button>
+      </div>`;
+  }
+
+  el.innerHTML = `
+    <div class="topbar">
+      <button class="back-btn" onclick="if(confirm('Exit quiz? Your progress will be lost.'))show('home')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:12px;color:var(--text3);font-weight:500">${state.isPractice ? 'Practice Test' : 'Quiz'} · Q${state.qIdx + 1} of ${state.questions.length}</span>
+          ${badge(q.domain)}
+        </div>
+        <div class="prog-bg"><div class="prog-fill" style="width:${p}%"></div></div>
+      </div>
+    </div>
+    <div style="padding:16px">
+      <div style="font-size:15px;font-weight:500;color:var(--text);line-height:1.6;margin-bottom:18px">${q.q}</div>
+      ${q.opts.map((o, i) => {
+        let cls = 'opt';
+        if (sel !== null) {
+          if (i === q.correct) cls += ' show-correct';
+          else if (i === sel) cls += ' wrong';
+        }
+        return `<button class="${cls}" onclick="selectAnswer(${i})" ${sel !== null ? 'disabled' : ''}>
+          <div class="opt-key">${['A','B','C','D'][i]}</div>
+          <div class="opt-text">${o}</div>
+          ${sel !== null && i === q.correct ? '<span style="margin-left:auto;color:#4ADE80;font-size:18px;flex-shrink:0">✓</span>' : ''}
+          ${sel !== null && i === sel && sel !== q.correct ? '<span style="margin-left:auto;color:#F87171;font-size:18px;flex-shrink:0">✗</span>' : ''}
+        </button>`;
+      }).join('')}
+      ${explainHtml}
+    </div>
+  `;
+}
+
+function renderReview() {
+  const q = state.questions[state.reviewIdx];
+  const a = state.answers.find(x => x.qid === q.id);
+  const el = document.getElementById('screen-review');
+  const isCorrect = a && a.selected === q.correct;
+
+  el.innerHTML = `
+    <div class="topbar">
+      <button class="back-btn" onclick="show('results')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="topbar-title">Review — Q${state.reviewIdx + 1} of ${state.questions.length}</span>
+    </div>
+    <div style="padding:16px">
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        ${badge(q.domain)}
+        <span class="badge ${isCorrect ? 'badge-green' : 'badge-red'}">${isCorrect ? 'Correct' : 'Incorrect'}</span>
+      </div>
+      <div style="font-size:15px;font-weight:500;color:var(--text);line-height:1.6;margin-bottom:16px">${q.q}</div>
+      ${q.opts.map((o, i) => {
+        let cls = 'opt';
+        if (i === q.correct) cls += ' show-correct';
+        else if (a && i === a.selected && a.selected !== q.correct) cls += ' wrong';
+        return `<button class="${cls}" disabled style="opacity:1">
+          <div class="opt-key">${['A','B','C','D'][i]}</div>
+          <div class="opt-text">${o}</div>
+          ${i === q.correct ? '<span style="margin-left:auto;color:#4ADE80;font-size:18px;flex-shrink:0">✓</span>' : ''}
+          ${a && i === a.selected && a.selected !== q.correct ? '<span style="margin-left:auto;color:#F87171;font-size:18px;flex-shrink:0">✗</span>' : ''}
+        </button>`;
+      }).join('')}
+      <div class="explain" style="margin-top:4px">
+        <div class="explain-label">Explanation</div>
+        <div class="explain-text">${q.exp}</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="btn btn-outline" style="flex:1" onclick="prevReview()" ${state.reviewIdx === 0 ? 'disabled' : ''}>← Prev</button>
+        <button class="btn btn-primary" style="flex:1" onclick="nextReview()">${state.reviewIdx < state.questions.length - 1 ? 'Next →' : 'Done'}</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderResults() {
+  const correct = state.answers.filter(a => a.selected === a.correct).length;
+  const total = state.answers.length;
+  const p = pct(correct, total);
+  const c = scoreColor(p);
+  const passed = p >= 56;
+
+  const domainScores = {};
+  [1, 2, 3].forEach(d => { domainScores[d] = { c: 0, t: 0 }; });
+  state.answers.forEach(a => {
+    const q = state.questions.find(q => q.id === a.qid);
+    if (q) { domainScores[q.domain].t++; if (a.selected === a.correct) domainScores[q.domain].c++; }
+  });
+
+  const el = document.getElementById('screen-results');
+  el.innerHTML = `
+    <div class="topbar">
+      <button class="back-btn" onclick="show('home')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="topbar-title">${state.isPractice ? 'Practice Test' : 'Quiz'} Results</span>
+    </div>
+    <div style="padding:20px 16px 0">
+      <div style="text-align:center;margin-bottom:20px">
+        <div class="score-ring" style="border-color:${c.ring};background:${c.bg}">
+          <div class="score-pct" style="color:${c.textColor}">${p}%</div>
+          <div class="score-sub" style="color:${c.textColor}">${correct}/${total}</div>
+        </div>
+        <span class="badge ${passed ? 'badge-green' : 'badge-red'}" style="font-size:13px;padding:5px 14px">${passed ? state.isPractice ? 'On track to pass!' : 'Great work!' : 'Keep studying'}</span>
+        <div style="font-size:13px;color:var(--text3);margin-top:10px">${correct} correct out of ${total} questions</div>
+      </div>
+
+      ${state.isPractice ? `
+        <div class="card" style="margin:0 0 12px">
+          <div class="section-label" style="padding:0;margin-bottom:10px">Domain Breakdown</div>
+          ${[1,2,3].map(d => {
+            const ds = domainScores[d];
+            const dp = pct(ds.c, ds.t);
+            const dc = scoreColor(dp);
+            const barColor = dp >= 70 ? '#16A34A' : dp >= 56 ? '#D97706' : '#DC2626';
+            return `<div class="domain-row">
+              <div style="min-width:80px">${badge(d)}</div>
+              <div class="perf-bar-bg"><div class="perf-bar-fill" style="width:${dp}%;background:${barColor}"></div></div>
+              <div style="min-width:50px;text-align:right;font-family:'DM Mono',monospace;font-size:13px;color:${dc.textColor}">${dp}% <span style="font-size:11px;color:var(--text3)">(${ds.c}/${ds.t})</span></div>
+            </div>`;
+          }).join('')}
+        </div>` : ''}
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-primary" onclick="openReview()">Review All Questions</button>
+        <button class="btn btn-outline" onclick="${state.isPractice ? 'startPracticeTest' : 'startQuiz'}()">Try Again</button>
+        <button class="btn btn-outline" onclick="show('home')">Back to Home</button>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════════
+function openGlossary() {
+  renderGlossary();
+  show('glossary');
+}
+function openGlossTerm(idx) {
+  state.glossTerm = GLOSSARY[idx];
+  renderGlossDetail();
+  show('gloss-detail');
+}
+function filterGloss(domainIdx) {
+  if (domainIdx === 0) state.glossSearch = '';
+  else {
+    const filtered = GLOSSARY.filter(g => g.domain === domainIdx).sort((a, b) => a.term.localeCompare(b.term));
+    state.glossSearch = '';
+  }
+  renderGlossary();
+}
+function openQuizConfig() {
+  renderQuizConfig();
+  show('quiz-config');
+}
+function startQuiz() {
+  const src = state.quizDomain === 'all' ? QUESTIONS : QUESTIONS.filter(q => q.domain === parseInt(state.quizDomain));
+  state.questions = shuffle(src).slice(0, Math.min(state.quizCount, src.length));
+  state.qIdx = 0;
+  state.selected = null;
+  state.answers = [];
+  state.isPractice = false;
+  state.reviewMode = false;
+  renderQuiz();
+  show('quiz');
+}
+function startPracticeTest() {
+  const d1 = shuffle(QUESTIONS.filter(q => q.domain === 1)).slice(0, 28);
+  const d2 = shuffle(QUESTIONS.filter(q => q.domain === 2)).slice(0, 28);
+  const d3 = shuffle(QUESTIONS.filter(q => q.domain === 3)).slice(0, 34);
+  state.questions = shuffle([...d1, ...d2, ...d3]);
+  state.qIdx = 0;
+  state.selected = null;
+  state.answers = [];
+  state.isPractice = true;
+  state.reviewMode = false;
+  renderQuiz();
+  show('quiz');
+}
+function selectAnswer(idx) {
+  if (state.selected !== null) return;
+  state.selected = idx;
+  state.answers.push({ qid: state.questions[state.qIdx].id, selected: idx, correct: state.questions[state.qIdx].correct });
+  renderQuiz();
+}
+function nextQuestion() {
+  if (state.qIdx < state.questions.length - 1) {
+    state.qIdx++;
+    state.selected = null;
+    renderQuiz();
+  } else {
+    renderResults();
+    show('results');
+  }
+}
+function openReview() {
+  state.reviewIdx = 0;
+  renderReview();
+  show('review');
+}
+function nextReview() {
+  if (state.reviewIdx < state.questions.length - 1) {
+    state.reviewIdx++;
+    renderReview();
+    window.scrollTo(0, 0);
+  } else {
+    show('results');
+  }
+}
+function prevReview() {
+  if (state.reviewIdx > 0) {
+    state.reviewIdx--;
+    renderReview();
+    window.scrollTo(0, 0);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+renderHome();
+show('home');
+</script>
+</body>
+</html>
